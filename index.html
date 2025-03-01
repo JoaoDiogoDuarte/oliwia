@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Oliwia Jackowska</title>
+    <link rel="stylesheet" href="https://use.typekit.net/tnv8qdg.css">
     <style>
     
         :root {
           --header-left: 65%; /* Define the left percentage for the header text interstate mono (bold or black), small is montserat*/
-          --header-top:  20%; /* Define the left percentage for the header text */
-          --subheader-left: calc(var(--header-left) + 0%);
-          --subheader-top: calc(var(--header-top) + 10%);
-          --bullets-left:  calc(var(--subheader-left) + 10%);
-          --bullets-top:  calc(var(--subheader-top) + 10%);
-          --profile-left:  25%;
+          --header-top:  17%; /* Define the left percentage for the header text */
+          --subheader-left: calc(var(--header-left));
+          --subheader-top:  calc(var(--header-top) + 10%);
+          --bullets-left:   calc(var(--subheader-left) + 2%);
+          --bullets-top:    calc(var(--subheader-top) + 10%);
+          --profile-left: 25%;
           --profile-top:  0%;
        }
 
@@ -26,6 +27,8 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
+            flex-direction: column; /* Stacks elements vertically */
+            align-items: center; /* Centers elements horizontally */
         }
 
         .header {
@@ -43,7 +46,7 @@
             top: 0;
             left: 0;
             background-color: #070cb1;
-            clip-path: polygon(100% 100%, 0 55%, 0 0, 100% 0);
+            clip-path: polygon(100% 100%, 0 60%, 0 0, 100% 0);
         }
         
         .purple-shape {
@@ -61,6 +64,9 @@
             top: var(--header-top);
             left: var(--header-left);
             transform: translate(-50%, -50%);
+            font-family: montserrat, sans-serif;
+            font-weight: 900;
+            font-style: normal;
             font-size: calc(2vw + 2vh);
             color: white;
             font-weight: bold;
@@ -73,6 +79,8 @@
             top: var(--subheader-top);
             left: var(--subheader-left);
             transform: translate(-50%, 0);
+            font-family: interstate-mono, monospace;
+            font-weight: 300;
             font-size: calc(0.8vw + 0.8vh); /* Scales based on both width and height */
             color: white;
             font-weight: bold;
@@ -82,12 +90,14 @@
         
         .bullet-points {
             position: absolute;
-            top: var(--bullet-top);
-            left: var(--bullet-left);
+            top: var(--bullets-top);
+            left: var(--bullets-left);
             transform: translate(-50%, 0);
             display: flex;
-            gap: 4vw; /* Space between the two columns */
-            font-size: calc(0.75vw + 0.75vh); /* Scales based on both width and height */
+            gap: 5vw; /* Space between the two columns */
+            font-family: interstate-mono, monospace;
+            font-weight: 300;
+            font-size: calc(0.65vw + 0.65vh); /* Scales based on both width and height */
             color: white;
             white-space: nowrap;
             list-style-type: none;
@@ -97,13 +107,13 @@
             content: "■"; /* Square yellow bullet point */
             color: #c219f8;
             display: inline-block;
-            margin-right: 0.5vw; /* Space between bullet and text */
+            margin-right: 0.65vw; /* Space between bullet and text */
         }
 
         .bullet-column {
             display: flex;
             flex-direction: column;
-            gap: 0.65vw; /* Spacing between the bullet points in a column */
+            gap: 1vw; /* Spacing between the bullet points in a column */
         }
 
         .profile-image {
@@ -113,7 +123,56 @@
             transform: translate(-50%, 0) rotate(-5deg);
             height: calc(40vh); /* Set to approximately 70% of the header height (40vh * 0.7) */
             z-index: 5; /* Ensures it appears above the shapes but below text */
+            transform-origin: center 90%; /* Rotation point: horizontal center, 10% from bottom */
+            animation: rotate-back-forth 2s infinite ease-in-out; /* Smooth endless animation */
         }
+        
+     
+
+        @keyframes rotate-back-forth {
+            0% { transform: translate(-50%, 0) rotate(-5deg); }
+            25% { transform: translate(-50%, 0) rotate(-2deg); }
+            50% { transform: translate(-50%, 0) rotate(-5deg); }
+            75% { transform: translate(-50%, 0) rotate(-8deg); }
+            100% { transform: translate(-50%, 0) rotate(-5deg); }
+       } 
+    
+       .contact-table {
+         width: 75%; /* Takes up 65% of the screen width */
+         margin-left: 15%; /* Starts around 15% left of the screen */
+         text-align: left; /* Left-align the text */
+         border-collapse: collapse; /* No borders between cells */
+       }
+    
+       .contact-table th, .contact-table td {
+        padding: 8px;
+        vertical-align: top; /* Top-align the content */
+       }
+       
+       .contact-table th {
+         width: 20%; /* First column width */
+       }
+       .contact-table td:nth-child(1), .contact-table th:nth-child(1) {
+         width: 15%; /* First column width */
+         font-family: "interstate-mono", monospace;
+         font-weight: 700;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+       }
+       .contact-table td:nth-child(2), .contact-table th:nth-child(2) {
+         width: 20%; /* Second column width */
+         font-family: "interstate-mono", monospace;
+         font-weight: 400;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+       }
+       .contact-table td:nth-child(3), .contact-table th:nth-child(3) {
+         width: 40%; /* Third column width */
+         font-family: "interstate-mono", monospace;
+         font-weight: 300;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+       }
         
        @media (max-width: 768px) {
            .profile-image {
@@ -153,5 +212,19 @@
         </ul>
     <img class="profile-image" src="oliwia.png" alt="Oliwia">
     </div>
+    
+    <table class="contact-table">
+    <tr>
+      <th>CONTACT</th>
+      <td>phone:</td>
+      <td>(PT) +351928161176, (PL) +48722320302</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>email:</td>
+      <td>oliwia.jack@gmail.com</td>
+    </tr>
+  </table>
+    
 </body>
 </html>
