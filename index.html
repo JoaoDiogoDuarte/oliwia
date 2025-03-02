@@ -121,14 +121,12 @@
             top: var(--profile-top);
             left: var(--profile-left);
             transform: translate(-50%, 0) rotate(-5deg);
-            height: calc(40vh); /* Set to approximately 70% of the header height (40vh * 0.7) */
+            height: calc(10vw + 20vh); /* Set to approximately 70% of the header height (40vh * 0.7) */
             z-index: 5; /* Ensures it appears above the shapes but below text */
             transform-origin: center 90%; /* Rotation point: horizontal center, 10% from bottom */
             animation: rotate-back-forth 2s infinite ease-in-out; /* Smooth endless animation */
         }
-        
      
-
         @keyframes rotate-back-forth {
             0% { transform: translate(-50%, 0) rotate(-5deg); }
             25% { transform: translate(-50%, 0) rotate(-2deg); }
@@ -142,6 +140,8 @@
          margin-left: 15%; /* Starts around 15% left of the screen */
          text-align: left; /* Left-align the text */
          border-collapse: collapse; /* No borders between cells */
+         margin-bottom: 60px; /* Add vertical padding between tables */
+         table-layout: fixed; /* Enforces fixed layout */
        }
     
        .contact-table th, .contact-table td {
@@ -149,16 +149,15 @@
         vertical-align: top; /* Top-align the content */
        }
        
-       .contact-table th {
-         width: 20%; /* First column width */
-       }
+       
        .contact-table td:nth-child(1), .contact-table th:nth-child(1) {
-         width: 15%; /* First column width */
+         width: 25%; /* First column width */
          font-family: "interstate-mono", monospace;
          font-weight: 700;
          font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
+         font-size: calc(1vw + 1vh);
        }
+       
        .contact-table td:nth-child(2), .contact-table th:nth-child(2) {
          width: 20%; /* Second column width */
          font-family: "interstate-mono", monospace;
@@ -166,14 +165,102 @@
          font-style: normal;
          font-size: calc(0.75vw + 0.75vh);
        }
+       
        .contact-table td:nth-child(3), .contact-table th:nth-child(3) {
-         width: 40%; /* Third column width */
+         width: 55%; /* Third column width */
          font-family: "interstate-mono", monospace;
          font-weight: 300;
          font-style: normal;
          font-size: calc(0.75vw + 0.75vh);
        }
+       
+       .skills-table {
+          width: 75%; /* Takes up 65% of the screen width */
+         margin-left: 15%; /* Starts around 15% left of the screen */
+         text-align: left; /* Left-align the text */
+         border-collapse: collapse; /* No borders between cells */
+         margin-bottom: 60px; /* Add vertical padding between tables */
+         table-layout: fixed; /* Enforces fixed layout */
+        }
+
+        .skills-table th, .skills-table td {
+          padding: 8px;
+          vertical-align: top;
+        }
+
+
+        .skills-table td:nth-child(1), .skills-table th:nth-child(1) {
+          width: 25%;
+          font-family: "interstate-mono", monospace;
+          font-weight: 700;
+          font-style: normal;
+          font-size: calc(1vw + 1vh);
+        }
         
+        .skills-table td:nth-child(1), .skills-table th:nth-child(2) {
+          width: 20%; /* Adjusted width to match the other table */
+          font-family: "interstate-mono", monospace;
+           font-weight: 700;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(1), .skills-table th:nth-child(3) {
+          width: 15%; /* Adjusted width to match the other table */
+          font-family: "interstate-mono", monospace;
+           font-weight: 700;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(1), .skills-table th:nth-child(4) {
+          width: 20%; /* Adjusted width to match the other table */
+          font-family: "interstate-mono", monospace;
+           font-weight: 700;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(1), .skills-table th:nth-child(5) {
+          width: 20%; /* Adjusted width to match the other table */
+          font-family: "interstate-mono", monospace;
+           font-weight: 700;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(2), .skills-table th:nth-child(3) {
+          font-family: "interstate-mono", monospace;
+           font-weight: 400;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(3), .skills-table th:nth-child(3) {
+          font-family: "interstate-mono", monospace;
+           font-weight: 400;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(4), .skills-table th:nth-child(3) {
+          font-family: "interstate-mono", monospace;
+           font-weight: 400;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+        
+        .skills-table td:nth-child(5), .skills-table th:nth-child(3) {
+          font-family: "interstate-mono", monospace;
+           font-weight: 400;
+         font-style: normal;
+         font-size: calc(0.75vw + 0.75vh);
+        }
+
+          
+        }
+
+
        @media (max-width: 768px) {
            .profile-image {
             position: absolute;
@@ -225,6 +312,51 @@
       <td>oliwia.jack@gmail.com</td>
     </tr>
   </table>
-    
+  
+  <table class="skills-table">
+      <tr>
+        <th>SKILLS</th>
+        <th>languages</th>
+        <th></th>
+        <th>programs</th>
+        <th></th>
+      </tr>
+      <tr>
+        <td></td>
+        <td>Polish</td>
+        <td>(C2)</td>
+        <td>InDesign</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>English</td>
+        <td>(C2)</td>
+        <td>Photoshop</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>Portuguese</td>
+        <td>(C1)</td>
+        <td>Illustrator</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>German</td>
+        <td>(B2)</td>
+        <td>Microsoft</td>
+        <td>...</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>Adobe Premier</td>
+        <td>...</td>
+      </tr>
+    </table>  
+
 </body>
 </html>
