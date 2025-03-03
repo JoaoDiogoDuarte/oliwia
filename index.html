@@ -5,8 +5,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oliwia Jackowska</title>
-  <link rel="stylesheet" href="https://use.typekit.net/tnv8qdg.css">
   <style>
+
+    @font-face {
+      font-family: 'montsserat';
+      src: url('fonts/mont/Montserrat-VariableFont_wght.ttf');
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'montsserat';
+      src: url('fonts/mont/Montserrat-Italic-VariableFont_wght.ttf');
+      font-style: italic;
+    }
+
+    @font-face {
+      font-family: 'overpass-mono';
+      src: url('fonts/overpass/OverpassMono[wght].ttf');
+    }
+
+
     :root {
       --header-left: 65%;
       --header-top: 17%;
@@ -97,7 +115,7 @@
       top: var(--subheader-top);
       left: var(--subheader-left);
       transform: translate(-50%, 0);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--light-weight);
       font-size: var(--subheader-font-size);
       color: white;
@@ -113,7 +131,7 @@
       transform: translate(-50%, 0);
       display: flex;
       gap: 5vw;
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--light-weight);
       font-size: var(--bullet-font-size);
       color: white;
@@ -185,7 +203,7 @@
     .contact-table td:nth-child(1),
     .contact-table th:nth-child(1) {
       width: var(--table-first-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -194,7 +212,7 @@
     .contact-table td:nth-child(2),
     .contact-table th:nth-child(2) {
       width: var(--contact-table-second-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -203,7 +221,7 @@
     .contact-table td:nth-child(3),
     .contact-table th:nth-child(3) {
       width: var(--contact-table-third-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--light-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -227,7 +245,7 @@
     .skills-table td:nth-child(1),
     .skills-table th:nth-child(1) {
       width: var(--table-first-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -236,7 +254,7 @@
     .skills-table td:nth-child(1),
     .skills-table th:nth-child(2) {
       width: var(--skills-table-second-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -245,7 +263,7 @@
     .skills-table td:nth-child(1),
     .skills-table th:nth-child(3) {
       width: var(--skills-table-third-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -254,7 +272,7 @@
     .skills-table td:nth-child(1),
     .skills-table th:nth-child(4) {
       width: var(--skills-table-fourth-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -263,7 +281,7 @@
     .skills-table td:nth-child(1),
     .skills-table th:nth-child(5) {
       width: var(--skills-table-fourth-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -271,7 +289,7 @@
 
     .skills-table td:nth-child(2),
     .skills-table th:nth-child(3) {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -279,7 +297,7 @@
 
     .skills-table td:nth-child(3),
     .skills-table th:nth-child(3) {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -287,7 +305,7 @@
 
     .skills-table td:nth-child(4),
     .skills-table th:nth-child(3) {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -295,7 +313,7 @@
 
     .skills-table td:nth-child(5),
     .skills-table th:nth-child(3) {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -350,20 +368,20 @@
     }
 
     .education-work-subheading {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       letter-spacing: 0.03em;
     }
 
     .work-subheading {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
     }
 
     .work-subheading {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--light-weight);
       font-style: normal;
     }
@@ -371,7 +389,7 @@
     .thesis-title,
     .publication-title {
       color: #c219f7;
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       letter-spacing: 0.03em;
@@ -382,7 +400,7 @@
     .education-work-table td:nth-child(1),
     .education-work-table th:nth-child(1) {
       width: var(--table-first-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -391,7 +409,7 @@
     .education-work-table td:nth-child(1),
     .education-work-table th:nth-child(2) {
       width: var(--education-work-table-second-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -400,7 +418,7 @@
     .education-work-table td:nth-child(3),
     .education-work-table th:nth-child(3) {
       width: var(--education-work-table-third-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
       font-size: var(--table-font-size);
@@ -408,7 +426,7 @@
 
     .education-work-table td:nth-child(2) {
       width: var(--education-work-table-second-column-width);
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-size: var(--table-font-size);
       font-style: normal;
@@ -426,7 +444,7 @@
     }
 
     .where {
-      font-family: interstate-mono, monospace;
+      font-family: overpass-mono, monospace;
     }
 
     @media (max-width: 768px) {
