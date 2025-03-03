@@ -1,306 +1,507 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oliwia Jackowska</title>
-    <link rel="stylesheet" href="https://use.typekit.net/tnv8qdg.css">
-    <style>
-    
-        :root {
-          --header-left: 65%; /* Define the left percentage for the header text interstate mono (bold or black), small is montserat*/
-          --header-top:  17%; /* Define the left percentage for the header text */
-          --subheader-left: calc(var(--header-left));
-          --subheader-top:  calc(var(--header-top) + 10%);
-          --bullets-left:   calc(var(--subheader-left) + 2%);
-          --bullets-top:    calc(var(--subheader-top) + 10%);
-          --profile-left: 25%;
-          --profile-top:  0%;
-       }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oliwia Jackowska</title>
+  <link rel="stylesheet" href="https://use.typekit.net/tnv8qdg.css">
+  <style>
+    :root {
+      --header-left: 65%;
+      --header-top: 17%;
+      --header-height: calc(30vh + 10vw);
+      --subheader-left: calc(var(--header-left));
+      --subheader-top: calc(var(--header-top) + 10%);
+      --bullets-left: calc(var(--subheader-left) + 2%);
+      --bullets-top: calc(var(--subheader-top) + 10%);
+      --profile-left: 25%;
+      --profile-top: 0%;
+      --header-font-size: calc(2vw + 2vh);
+      --subheader-font-size: calc(0.8vw + 0.8vh);
+      --bullet-font-size: calc(0.65vw + 0.65vh);
+      --table-font-size: calc(0.75vw + 0.75vh);
+      --table-first-column-width: 25%;
+      --contact-table-second-column-width: 20%;
+      --contact-table-third-column-width: 55%;
+      --skills-table-second-column-width: 20%;
+      --skills-table-third-column-width: 15%;
+      --skills-table-fourth-column-width: 20%;
+      --education-work-table-second-column-width: 15%;
+      --education-work-table-third-column-width: 60%;
+      --bottom-margin: 40px;
+      --light-weight: 300;
+      --medium-weight: 400;
+      --bold-weight: 700;
+      --black-weight: 900;
+    }
 
-        * {
-            Margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    * {
+      Margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            flex-direction: column; /* Stacks elements vertically */
-            align-items: center; /* Centers elements horizontally */
-        }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        .header {
-           position: relative;
-           width: 100%;
-           height: calc(30vh + 10vw); /* Scales dynamically with the window height */
-           background-color: transparent;
-           overflow: hidden;
-        }
+    .header {
+      position: relative;
+      width: 100%;
+      height: var(--header-height);
+      background-color: transparent;
+      overflow: hidden;
+    }
 
-        .slanted-blue-shape {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background-color: #070cb1;
-            clip-path: polygon(100% 100%, 0 60%, 0 0, 100% 0);
-        }
-        
-        .purple-shape {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background-color: #c219f8;
-            clip-path: polygon(0 100%, 0 0, 55% 0, 0 100%);
-        }
-        
-        .header-text {
-            position: absolute;
-            top: var(--header-top);
-            left: var(--header-left);
-            transform: translate(-50%, -50%);
-            font-family: montserrat, sans-serif;
-            font-weight: 900;
-            font-style: normal;
-            font-size: calc(2vw + 2vh);
-            color: white;
-            font-weight: bold;
-            white-space: nowrap; /* Prevents wrapping */
-            z-index: 10;
-        }
-        
-        .subheader-text {
-            position: absolute;
-            top: var(--subheader-top);
-            left: var(--subheader-left);
-            transform: translate(-50%, 0);
-            font-family: interstate-mono, monospace;
-            font-weight: 300;
-            font-size: calc(0.8vw + 0.8vh); /* Scales based on both width and height */
-            color: white;
-            font-weight: bold;
-            white-space: nowrap; /* Prevents wrapping */
-            z-index: 10;
-        }
-        
-        .bullet-points {
-            position: absolute;
-            top: var(--bullets-top);
-            left: var(--bullets-left);
-            transform: translate(-50%, 0);
-            display: flex;
-            gap: 5vw; /* Space between the two columns */
-            font-family: interstate-mono, monospace;
-            font-weight: 300;
-            font-size: calc(0.65vw + 0.65vh); /* Scales based on both width and height */
-            color: white;
-            white-space: nowrap;
-            list-style-type: none;
-        }
+    .slanted-blue-shape {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: #070cb1;
+      clip-path: polygon(100% 100%, 0 60%, 0 0, 100% 0);
+    }
 
-        .bullet-points li::before {
-            content: "■"; /* Square yellow bullet point */
-            color: #c219f8;
-            display: inline-block;
-            margin-right: 0.65vw; /* Space between bullet and text */
-        }
+    .purple-shape {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background-color: #c219f8;
+      clip-path: polygon(0 100%, 0 0, 55% 0, 0 100%);
+    }
 
-        .bullet-column {
-            display: flex;
-            flex-direction: column;
-            gap: 1vw; /* Spacing between the bullet points in a column */
-        }
+    .header-text {
+      position: absolute;
+      top: var(--header-top);
+      left: var(--header-left);
+      transform: translate(-50%, -50%);
+      font-family: montserrat, sans-serif;
+      font-weight: var(--black-weight);
+      font-style: normal;
+      font-size: var(--header-font-size);
+      color: white;
+      font-weight: bold;
+      white-space: nowrap;
+      z-index: 10;
+    }
 
-        .profile-image {
-            position: absolute;
-            top: var(--profile-top);
-            left: var(--profile-left);
-            transform: translate(-50%, 0) rotate(-5deg);
-            height: calc(10vw + 20vh); /* Set to approximately 70% of the header height (40vh * 0.7) */
-            z-index: 5; /* Ensures it appears above the shapes but below text */
-            transform-origin: center 90%; /* Rotation point: horizontal center, 10% from bottom */
-            animation: rotate-back-forth 2s infinite ease-in-out; /* Smooth endless animation */
-        }
-     
-        @keyframes rotate-back-forth {
-            0% { transform: translate(-50%, 0) rotate(-5deg); }
-            25% { transform: translate(-50%, 0) rotate(-2deg); }
-            50% { transform: translate(-50%, 0) rotate(-5deg); }
-            75% { transform: translate(-50%, 0) rotate(-8deg); }
-            100% { transform: translate(-50%, 0) rotate(-5deg); }
-       } 
-    
-       .contact-table {
-         width: 75%; /* Takes up 65% of the screen width */
-         margin-left: 15%; /* Starts around 15% left of the screen */
-         text-align: left; /* Left-align the text */
-         border-collapse: collapse; /* No borders between cells */
-         margin-bottom: 60px; /* Add vertical padding between tables */
-         table-layout: fixed; /* Enforces fixed layout */
-       }
-    
-       .contact-table th, .contact-table td {
-        padding: 8px;
-        vertical-align: top; /* Top-align the content */
-       }
-       
-       
-       .contact-table td:nth-child(1), .contact-table th:nth-child(1) {
-         width: 25%; /* First column width */
-         font-family: "interstate-mono", monospace;
-         font-weight: 700;
-         font-style: normal;
-         font-size: calc(1vw + 1vh);
-       }
-       
-       .contact-table td:nth-child(2), .contact-table th:nth-child(2) {
-         width: 20%; /* Second column width */
-         font-family: "interstate-mono", monospace;
-         font-weight: 400;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-       }
-       
-       .contact-table td:nth-child(3), .contact-table th:nth-child(3) {
-         width: 55%; /* Third column width */
-         font-family: "interstate-mono", monospace;
-         font-weight: 300;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-       }
-       
-       .skills-table {
-          width: 75%; /* Takes up 65% of the screen width */
-         margin-left: 15%; /* Starts around 15% left of the screen */
-         text-align: left; /* Left-align the text */
-         border-collapse: collapse; /* No borders between cells */
-         margin-bottom: 60px; /* Add vertical padding between tables */
-         table-layout: fixed; /* Enforces fixed layout */
-        }
+    .subheader-text {
+      position: absolute;
+      top: var(--subheader-top);
+      left: var(--subheader-left);
+      transform: translate(-50%, 0);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--light-weight);
+      font-size: var(--subheader-font-size);
+      color: white;
+      font-weight: bold;
+      white-space: nowrap;
+      z-index: 10;
+    }
 
-        .skills-table th, .skills-table td {
-          padding: 8px;
-          vertical-align: top;
-        }
+    .bullet-points {
+      position: absolute;
+      top: var(--bullets-top);
+      left: var(--bullets-left);
+      transform: translate(-50%, 0);
+      display: flex;
+      gap: 5vw;
+      font-family: interstate-mono, monospace;
+      font-weight: var(--light-weight);
+      font-size: var(--bullet-font-size);
+      color: white;
+      white-space: nowrap;
+      list-style-type: none;
+    }
+
+    .bullet-points li::before {
+      content: "■";
+      color: #c219f8;
+      display: inline-block;
+      margin-right: 0.65vw;
+    }
+
+    .bullet-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1vw;
+    }
+
+    .profile-image {
+      position: absolute;
+      top: var(--profile-top);
+      left: var(--profile-left);
+      transform: translate(-50%, 0) rotate(-5deg);
+      height: calc(10vw + 20vh);
+      z-index: 5;
+      transform-origin: center 90%;
+      animation: rotate-back-forth 2s infinite ease-in-out;
+    }
+
+    @keyframes rotate-back-forth {
+      0% {
+        transform: translate(-50%, 0) rotate(-5deg);
+      }
+
+      25% {
+        transform: translate(-50%, 0) rotate(-2deg);
+      }
+
+      50% {
+        transform: translate(-50%, 0) rotate(-5deg);
+      }
+
+      75% {
+        transform: translate(-50%, 0) rotate(-8deg);
+      }
+
+      100% {
+        transform: translate(-50%, 0) rotate(-5deg);
+      }
+    }
+
+    .contact-table {
+      width: 75%;
+      margin-left: 15%;
+      text-align: left;
+      border-collapse: collapse;
+      margin-bottom: var(--bottom-margin);
+      table-layout: fixed;
+    }
+
+    .contact-table th,
+    .contact-table td {
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    .contact-table td:nth-child(1),
+    .contact-table th:nth-child(1) {
+      width: var(--table-first-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .contact-table td:nth-child(2),
+    .contact-table th:nth-child(2) {
+      width: var(--contact-table-second-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .contact-table td:nth-child(3),
+    .contact-table th:nth-child(3) {
+      width: var(--contact-table-third-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--light-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table {
+      width: 75%;
+      margin-left: 15%;
+      text-align: left;
+      border-collapse: collapse;
+      margin-bottom: var(--bottom-margin);
+      table-layout: fixed;
+    }
+
+    .skills-table th,
+    .skills-table td {
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    .skills-table td:nth-child(1),
+    .skills-table th:nth-child(1) {
+      width: var(--table-first-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(1),
+    .skills-table th:nth-child(2) {
+      width: var(--skills-table-second-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(1),
+    .skills-table th:nth-child(3) {
+      width: var(--skills-table-third-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(1),
+    .skills-table th:nth-child(4) {
+      width: var(--skills-table-fourth-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(1),
+    .skills-table th:nth-child(5) {
+      width: var(--skills-table-fourth-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(2),
+    .skills-table th:nth-child(3) {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(3),
+    .skills-table th:nth-child(3) {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(4),
+    .skills-table th:nth-child(3) {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .skills-table td:nth-child(5),
+    .skills-table th:nth-child(3) {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
+
+    .education-work-table {
+      width: 75%;
+      margin-left: 15%;
+      text-align: left;
+      border-collapse: collapse;
+      margin-bottom: var(--bottom-margin);
+      table-layout: fixed;
+    }
+
+    .education-work-table th,
+    .education-work-table td {
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    .highlight {
+      font-weight: bold;
+      position: relative;
+      display: inline-block;
+    }
+
+    .highlight::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      margin: 0 auto;
+      height: 6px;
+      background-color: #c219f8;
+      z-index: -1;
+    }
+
+    .education-work-text {
+      font-family: montserrat, sans-serif;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      line-height: 1.5;
+    }
+
+    .larger-br {
+      margin: 0.25vh 0;
+      /* Special spacing for this <br> */
+      display: block;
+      /* Ensures the margin works */
+    }
+
+    .education-work-subheading {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      letter-spacing: 0.03em;
+    }
+
+    .work-subheading {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+    }
+
+    .work-subheading {
+      font-family: interstate-mono, monospace;
+      font-weight: var(--light-weight);
+      font-style: normal;
+    }
+
+    .thesis-title,
+    .publication-title {
+      color: #c219f7;
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      letter-spacing: 0.03em;
+      line-height: 1.5;
+    }
 
 
-        .skills-table td:nth-child(1), .skills-table th:nth-child(1) {
-          width: 25%;
-          font-family: "interstate-mono", monospace;
-          font-weight: 700;
-          font-style: normal;
-          font-size: calc(1vw + 1vh);
-        }
-        
-        .skills-table td:nth-child(1), .skills-table th:nth-child(2) {
-          width: 20%; /* Adjusted width to match the other table */
-          font-family: "interstate-mono", monospace;
-           font-weight: 700;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(1), .skills-table th:nth-child(3) {
-          width: 15%; /* Adjusted width to match the other table */
-          font-family: "interstate-mono", monospace;
-           font-weight: 700;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(1), .skills-table th:nth-child(4) {
-          width: 20%; /* Adjusted width to match the other table */
-          font-family: "interstate-mono", monospace;
-           font-weight: 700;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(1), .skills-table th:nth-child(5) {
-          width: 20%; /* Adjusted width to match the other table */
-          font-family: "interstate-mono", monospace;
-           font-weight: 700;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(2), .skills-table th:nth-child(3) {
-          font-family: "interstate-mono", monospace;
-           font-weight: 400;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(3), .skills-table th:nth-child(3) {
-          font-family: "interstate-mono", monospace;
-           font-weight: 400;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(4), .skills-table th:nth-child(3) {
-          font-family: "interstate-mono", monospace;
-           font-weight: 400;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
-        
-        .skills-table td:nth-child(5), .skills-table th:nth-child(3) {
-          font-family: "interstate-mono", monospace;
-           font-weight: 400;
-         font-style: normal;
-         font-size: calc(0.75vw + 0.75vh);
-        }
+    .education-work-table td:nth-child(1),
+    .education-work-table th:nth-child(1) {
+      width: var(--table-first-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
 
-          
-        }
+    .education-work-table td:nth-child(1),
+    .education-work-table th:nth-child(2) {
+      width: var(--education-work-table-second-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--bold-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
 
+    .education-work-table td:nth-child(3),
+    .education-work-table th:nth-child(3) {
+      width: var(--education-work-table-third-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+      font-size: var(--table-font-size);
+    }
 
-       @media (max-width: 768px) {
-           .profile-image {
-            position: absolute;
-            top: 0%;
-            left: 25%;
-            transform: translate(-50%, 0) rotate(-5deg);
-            height: calc(40vh * 0.7); /* Set to approximately 70% of the header height (40vh * 0.7) */
-            z-index: 5; /* Ensures it appears above the shapes but below text */
-        }
-        }
+    .education-work-table td:nth-child(2) {
+      width: var(--education-work-table-second-column-width);
+      font-family: interstate-mono, monospace;
+      font-weight: var(--medium-weight);
+      font-size: var(--table-font-size);
+      font-style: normal;
+    }
 
-       
-    </style>
+    .special-emphasis em {
+      font-weight: var(--bold-weight);
+      font-style: italic;
+    }
+
+    .in {
+      font-family: montserrat, sans-serif;
+      font-weight: var(--medium-weight);
+      font-style: normal;
+    }
+
+    .where {
+      font-family: interstate-mono, monospace;
+    }
+
+    @media (max-width: 768px) {
+
+      :root {
+        --subheader-font-size: calc(0.8vw + 1vh);
+        --bullet-font-size: calc(0.75vw + 0.75vh);
+        --table-font-size: calc(0.8vw + 1vh);
+      }
+
+      .profile-image {
+        position: absolute;
+        top: 0%;
+        left: 25%;
+        transform: translate(-50%, 0) rotate(-5deg);
+        height: calc(40vh * 0.7);
+        z-index: 5;
+      }
+
+      .skills-table {
+        width: 85%;
+        margin-left: 10%;
+        text-align: left;
+        border-collapse: collapse;
+        margin-bottom: var(--bottom-margin);
+        table-layout: fixed;
+      }
+
+      .education-work-table {
+        width: 85%;
+        margin-left: 10%;
+        text-align: left;
+        border-collapse: collapse;
+        margin-bottom: var(--bottom-margin);
+        table-layout: fixed;
+      }
+
+      .contact-table {
+        width: 85%;
+        margin-left: 10%;
+        text-align: left;
+        border-collapse: collapse;
+        margin-bottom: var(--bottom-margin);
+        table-layout: fixed;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="header">
-        <div class="slanted-blue-shape"></div>
-        <div class="purple-shape"></div>
-        <div class="header-text">Oliwia Jackowska</div>
-        <div class="subheader-text">Spatial Designer, Writer and Editor</div>
-        <ul class="bullet-points">
-            <div class="bullet-column">
-                <li>architecture</li>
-                <li>urbansim</li>
-                <li>content writing</li>
-                <li>curating content</li>
-                <li>editorial layout</li>
-            </div>
-            <div class="bullet-column">
-                <li>publishing</li>
-                <li>hand drawing</li>
-                <li>graphic design</li>
-                <li>ethnography</li>
-                <li>digital communication</li>
-            </div>
-        </ul>
+  <div class="header">
+    <div class="slanted-blue-shape"></div>
+    <div class="purple-shape"></div>
+    <div class="header-text">Oliwia Jackowska</div>
+    <div class="subheader-text">Spatial Designer, Writer and Editor</div>
+    <ul class="bullet-points">
+      <div class="bullet-column">
+        <li>architecture</li>
+        <li>urbansim</li>
+        <li>content writing</li>
+        <li>curating content</li>
+        <li>editorial layout</li>
+      </div>
+      <div class="bullet-column">
+        <li>publishing</li>
+        <li>hand drawing</li>
+        <li>graphic design</li>
+        <li>ethnography</li>
+        <li>digital communication</li>
+      </div>
+    </ul>
     <img class="profile-image" src="oliwia.png" alt="Oliwia">
-    </div>
-    
-    <table class="contact-table">
+  </div>
+
+  <table class="contact-table">
     <tr>
       <th>CONTACT</th>
       <td>phone:</td>
@@ -311,52 +512,414 @@
       <td>email:</td>
       <td>oliwia.jack@gmail.com</td>
     </tr>
+    <tr>
+      <td></td>
+      <td>portfolio:</td>
+      <td><a href="portfolio-oliwia-jackowska.pdf">click for pdf version</a></td>
+    </tr>
   </table>
-  
+
   <table class="skills-table">
-      <tr>
-        <th>SKILLS</th>
-        <th>languages</th>
-        <th></th>
-        <th>programs</th>
-        <th></th>
-      </tr>
-      <tr>
-        <td></td>
-        <td>Polish</td>
-        <td>(C2)</td>
-        <td>InDesign</td>
-        <td>...</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>English</td>
-        <td>(C2)</td>
-        <td>Photoshop</td>
-        <td>...</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>Portuguese</td>
-        <td>(C1)</td>
-        <td>Illustrator</td>
-        <td>...</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>German</td>
-        <td>(B2)</td>
-        <td>Microsoft</td>
-        <td>...</td>
-      </tr>
-      <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>Adobe Premier</td>
-        <td>...</td>
-      </tr>
-    </table>  
+    <tr>
+      <th>SKILLS</th>
+      <th>languages</th>
+      <th></th>
+      <th>programs</th>
+      <th></th>
+    </tr>
+    <tr>
+      <td></td>
+      <td>Polish</td>
+      <td>(C2)</td>
+      <td>InDesign</td>
+      <td>...</td>
+    </tr>
+    <tr></tr>
+    <td></td>
+    <td>English</td>
+    <td>(C2)</td>
+    <td>Photoshop</td>
+    <td>...</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>Portuguese</td>
+      <td>(C1)</td>
+      <td>Illustrator</td>
+      <td>...</td>
+    </tr>
+    <tr></tr>
+    <td></td>
+    <td>German</td>
+    <td>(B2)</td>
+    <td>Microsoft</td>
+    <td>...</td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>Adobe Premier</td>
+      <td>...</td>
+    </tr>
+  </table>
+
+  <table class="education-work-table">
+    <tr>
+      <th style="color: #0a0cb1;">EDUCATION</th>
+      <th>2020-2023</th>
+      <td><span class="highlight">Delft University of Technology (TU Delft), NL</span><br class="larger-br">
+        <span class="education-work-text">Master of Science in Architecture, Urbanism and Building Sciences (track
+          Urbanism).</span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+
+    </tr>
+    <tr>
+      <td></td>
+      <td>Jan 2023</td>
+      <td class="special-emphasis">
+        <span class="education-work-subheading">Master Thesis:</span><br class="larger-br">
+        <a href="https://repository.tudelft.nl/islandora/object/uuid%3A4e068692-6e9c-465c-8a71-2a9b75a31c87"
+          style="text-decoration: none;">
+          <span class="thesis-title">
+            “Disrupting the gendered order: how to advance beyond Vienna's strategic approach to
+            gender mainstreaming in urban planning”</span></a><br class="larger-br">
+        <span class="education-work-text">
+          Supervised by Dr. Caroline Newton and Luisa Maria Calabrese. Through extensive fieldwork and interviews, I
+          proposed a critical examination of how Vienna, a city with a cutting-edge gender-sensitive approach to urban
+          planning, can elevate its marginalised community of migrant women by reorganising spatial structures. For <a
+            href="https://repository.tudelft.nl/islandora/object/uuid%3A4e068692-6e9c-465c-8a71-2a9b75a31c87">the
+            thesis</a>, I was awarded distinction <em>cum laude</em>, and nominated as a finalist for
+          <em>Delft Design for Diversity Thesis Award</em>.
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>May 2022</td>
+      <td class="special-emphasis">
+        <span class="education-work-subheading">Academic Publication:</span><br class="larger-br">
+        <a href="https://doi.org/10.1080/02665433.2022.2074526" style="text-decoration: none;">
+          <span class="publication-title">
+            “Who owns public spaces? The trailblazer exhibition on women's everyday life in
+            the City of Vienna (1991)”</span></a><br class="larger-br">
+        <span class="education-work-text">
+          Oliwia Jackowska & María Novas Ferradás, in <em>Planning Perspectives</em>, over 3,000 readers. DOI:
+          <a href="https://doi.org/10.1080/02665433.2022.2074526">10.1080/02665433.2022.2074526</a>
+        </span>
+      </td>
+    </tr>
+  </table>
+
+  <table class="education-work-table">
+    <tr>
+      <th></th>
+      <th>2015-2019</th>
+      <td><span class="highlight">University of Bath, United Kingdom</span><br class="larger-br">
+        <span class="education-work-text">Bachelor of Science in Architecture (Honours).</span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+
+    </tr>
+    <tr>
+      <td></td>
+      <td>Jul 2019</td>
+      <td class="special-emphasis">
+        <span class="education-work-subheading">Dissertation:</span><br class="larger-br">
+        <span class="thesis-title">“Typeworks. The Printing Press and Publishing House”</span><br class="larger-br">
+        <span class="education-work-text">
+          Supervised by Frank Lyons. For my dissertation architecture project, I proposed a flexible space for printing
+          press
+          in order to revive the art of publishing. I was awarded <em>upper-second class honours</em>.
+        </span>
+      </td>
+    </tr>
+  </table>
+
+  <table class="education-work-table">
+    <tr>
+      <th>WORK</th>
+      <th>2023-present</th>
+      <td><span class="highlight">Architectural assistant</span><br class="larger-br">
+        <span class="work-subheading"><em>ADOFF - Arquitetos, Porto, Portugal.</em></span><br class="larger-br">
+        <span class="education-work-text">
+          Something something something.
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+
+
+  <table class="education-work-table">
+    <tr>
+      <th></th>
+      <th>2020-2022<br><span class="education-work-text">part time</span></th>
+      <td><span class="highlight">Independent Student Magazine Editor</span><br class="larger-br">
+        <span class="work-subheading"><em>Bnieuws, Communications Office, Delft, Netherlands.</em></span><br
+          class="larger-br">
+        <span class="education-work-text">
+          During my Master's studies, I worked part-time as an editor of <a href="https://www.bnieuws.nl/">Bnieuws</a>.
+          With a team of editors, I curated, designed and wrote entries for eleven editions. My writing sparked many
+          discussions within the
+          university's community.
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>Oct 2022</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/dreamed-cities-as-neurodivergent-cities"
+          style="text-decoration: none;"></a>
+        <span class="publication-title">“Dreamed Cities as Neurodivergent Cities”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Dreamscapes</em></span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>May 2022</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/the-future-of-home" style="text-decoration: none;"></a>
+        <span class="publication-title">“The Future of Home”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Onbekend Maakt Onbemind</em></span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>Dec 2021</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/cheap-absurdity" style="text-decoration: none;"></a>
+        <span class="publication-title">“Cheap Absurdity”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Cheap</em></span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>Oct 2021</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/collective-trauma-war-and-humour" style="text-decoration: none;">
+          <span class="publication-title">“Collective Trauma - War and Humour”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Humour</em></span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>Jun 2021</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/a-short-story-of-bnieuws" style="text-decoration: none;">
+          <span class="publication-title">“A Short Story of Bnieuws”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Optimism Pessimism</em></span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>May 2021</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/50-euros-for-the-pleasures-sex-workers-in-red-light-districts"
+          style="text-decoration: none;"></a>
+        <span class="publication-title">“50 Euros for the Pleasures. Sex Workers in Red-Light Districts”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Colours</em></span>
+        <br class="larger-br">
+        <span class="education-work-text"></span>
+        An article on the spatial safety of sex workers, re-published under the same title by a Dutch urban
+        transformation association <a href="https://favas.net/"
+          style="text-decoration: underline; color: inherit;">Favas.net.</a>
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>Feb 2021</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/taboo-in-translation" style="text-decoration: none;"></a>
+        <span class="publication-title">“Taboo in translation”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Taboo</em></span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <th></th>
+      <td>Dec 2020</td>
+      <td>
+        <a href="https://www.bnieuws.nl/read/the-history-of-human-computer-interaction" style="text-decoration: none;">
+          <span class="publication-title">“The History of Human-Computer Interaction”</span>
+        </a>
+        <span class="in">in</span>
+        <span class="where"></span><em>Digital space</em></span>
+      </td>
+    </tr></a>
+  </table>
+
+
+  <table class="education-work-table">
+    <tr>
+      <th></th>
+      <th>2019-2020</th>
+      <td><span class="highlight">Architectural Assistant RIBA Part 1</span><br class="larger-br">
+        <span class="work-subheading"><em>Owers Wawrick Architects, Cambridge, United Kingdom.</em></span><br
+          class="larger-br">
+        <span class="education-work-text">
+          As an architectural assistant in an award-winning practice with a compact team, among other projects,
+          I was a key team member for
+          <a href="https://owarchitects.com/project/sycamore-house-plus-ultra/">Sycamore House - a £15m industrial
+            refurbishment of a 1970s warehouse</a>.
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+
+  <table class="education-work-table">
+    <tr>
+      <th></th>
+      <th>2019-2020<br><span class="education-work-text">part time</span></th>
+      <td><span class="highlight">Student Magazine Editor in Chief</span><br class="larger-br">
+        <span class="work-subheading"><em>PaperspACE, Bath, United Kingdom.</em></span><br class="larger-br">
+        <span class="education-work-text">
+          The role of Editor in Chief of <a href="https://paperspacemagazine.com/index.html">PaperspACE</a> involved
+          coordinating the writing process of all contributors,
+          organising funding and sponsorship, printing, distribution and developing the overall design of the magazine.
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+
+    </tr>
+    <tr>
+      <td></td>
+      <td>Jun 2019</td>
+      <td class="special-emphasis">
+        <span class="education-work-subheading">Issue 12. <em>Childhood</em></span><br class="larger-br">
+        <span class="education-work-text">
+          Short-listed for international 
+          <a href="https://www.stackmagazines.com/update/stack-awards-2019-student-magazine-of-the-year-shortlist/">Stack Awards 2019</a>, 
+          as one of 15 student magazines in the world. I was responsible
+          for the publishing, layout, graphic design, editing and curating, as well as wrote an article
+          <a href="https://www.bnieuws.nl/read/the-history-of-human-computer-interaction" style="text-decoration: none;">
+            <span class="publication-title">“The Adolescence and Architecture”.</span></a>
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+
+    </tr>
+    <tr>
+      <td></td>
+      <td>Jun 2019</td>
+      <td class="special-emphasis">
+        <span class="education-work-subheading">Issue 11. <em>Union</em></span><br class="larger-br">
+        <span class="education-work-text">
+          Along with curating, designing layout and printing the issue, I also wrote the article
+          <a href="https://www.bnieuws.nl/read/the-history-of-human-computer-interaction" style="text-decoration: none;"> 
+            <span class="publication-title">“A Union of Architects: Team 10, Modernism and Capitalism”.</span></a>
+        </span>
+      </td>
+    </tr>
+  </table>
+
+
+  <table class="education-work-table">
+    <tr>
+      <th></th>
+      <th>2018<br><span class="education-work-text">6 months</span></th>
+      <td><span class="highlight">Architectural Intern</span><br class="larger-br">
+        <span class="work-subheading"><em>sauerbruch hutton, Berlin, Germany.</em></span><br class="larger-br">
+        <span class="education-work-text">
+          At this renowned architectural practice in Germany, I worked on competition designs and feasibility studies,
+          often having an opportunity for independent design, research and presentations for the associates.
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
+  </table>
+
+
+
+
+
+
 
 </body>
+
 </html>
