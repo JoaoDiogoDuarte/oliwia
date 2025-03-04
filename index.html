@@ -26,29 +26,33 @@
     :root {
       --bar-thickness: 3px;
       --x-trans-amount: -35%;
-      --header-left: 65%;
+      --header-left: 60%;
       --header-top: 17%;
-      --header-height: calc(25vw + 3vh);
+      --header-height: calc(23vw + 3vh);
       --subheader-left: calc(var(--header-left));
       --subheader-top: calc(var(--header-top) + 10%);
       --bullets-left: calc(var(--subheader-left) + 2%);
       --bullets-top: calc(var(--subheader-top) + 10%);
-      --profile-left: 27%;
+      --profile-left: 23%;
+      --bar-pos: 20%;
       --profile-top: 0%;
       --ranking-spacing: 0.75vw;
+      --left-margin-tables: 10%;
       --header-font-size: 3.2vw;
       --subheader-font-size: 1.6vw;
       --bullet-font-size: 1.3vw;
+      --table-size: 83%;
       --table-font-size: 1.5vw;
-      --table-first-column-width: 25%;
-      --contact-table-second-column-width: 20%;
-      --contact-table-third-column-width: 55%;
-      --skills-table-second-column-width: 20%;
-      --skills-table-third-column-width: 15%;
-      --skills-table-fourth-column-width: 20%;
-      --education-work-table-second-column-width: 15%;
-      --education-work-table-third-column-width: 60%;
+      --table-first-column-width: 17%;
+      --contact-table-second-column-width: 17%;
+      --contact-table-third-column-width: 66%;
+      --skills-table-second-column-width: 17%;
+      --skills-table-third-column-width: 23%;
+      --skills-table-fourth-column-width: 23%;
+      --education-work-table-second-column-width: 17%;
+      --education-work-table-third-column-width: 66%;
       --bottom-margin: 40px;
+      --square-left: 20%;
       --light-weight: 300;
       --medium-weight: 400;
       --bold-weight: 700;
@@ -75,7 +79,6 @@
     }
 
     .background-bar-black-longer .background-bar-blue {
-      position: relative;
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -86,13 +89,13 @@
       position: absolute;
       top: 0;
       left: 0;
-      height: 106%;
+      height: 200%;
       width: 100%;
       background: linear-gradient(to right,
-          transparent 25%,
-          var(--color-black) 25%,
-          var(--color-black) calc(25% + var(--bar-thickness)),
-          transparent calc(25% + var(--bar-thickness)),
+          transparent var(--bar-pos),
+          var(--color-black) var(--bar-pos),
+          var(--color-black) calc(var(--bar-pos) + var(--bar-thickness)),
+          transparent calc(var(--bar-pos) + var(--bar-thickness)),
           transparent 95%);
       transform: scale(1) rotate(0deg);
       z-index: -1;
@@ -104,24 +107,24 @@
       height: 200%;
       width: 100%;
       background: linear-gradient(to right,
-          transparent 25%,
-          var(--color-blue) 25%,
-          var(--color-blue) calc(25% + var(--bar-thickness)),
-          transparent calc(25% + var(--bar-thickness)),
+          transparent var(--bar-pos),
+          var(--color-blue) var(--bar-pos),
+          var(--color-blue) calc(var(--bar-pos) + var(--bar-thickness)),
+          transparent calc(var(--bar-pos) + var(--bar-thickness)),
           transparent 95%);
       transform: scale(1) rotate(0deg);
       z-index: -1;
     }
 
     .background-bar-black {
-      height: 106%;
+      height: 100%;
       width: 100%;
       margin: 0;
       background: linear-gradient(to right,
-          transparent 25%,
-          var(--color-black) 25%,
-          var(--color-black) calc(25% + var(--bar-thickness)),
-          transparent calc(25% + var(--bar-thickness)),
+          transparent var(--bar-pos),
+          var(--color-black) var(--bar-pos),
+          var(--color-black) calc(var(--bar-pos) + var(--bar-thickness)),
+          transparent calc(var(--bar-pos) + var(--bar-thickness)),
           transparent 95%);
     }
 
@@ -132,6 +135,7 @@
       background-color: transparent;
       overflow: hidden;
     }
+
 
     .slanted-blue-shape {
       position: absolute;
@@ -152,6 +156,7 @@
       background-color: var(--color-purple);
       clip-path: polygon(0 100%, 0 0, 55% 0, 0 100%);
     }
+
 
     .header-text {
       position: absolute;
@@ -215,7 +220,7 @@
       top: var(--profile-top);
       left: var(--profile-left);
       transform: translate(-50%, 0) rotate(-5deg);
-      height: calc(35vw * 0.7);
+      height: 22vw;
       z-index: 5;
       transform-origin: center 90%;
       animation: rotate-back-forth 2s infinite ease-in-out;
@@ -254,13 +259,14 @@
     }
 
     .contact-table {
-      width: 75%;
-      margin-left: 15%;
+      width: var(--table-size);
+      margin-left: var(--left-margin-tables);
       text-align: left;
       border-collapse: collapse;
       margin-bottom: var(--bottom-margin);
       table-layout: fixed;
     }
+
 
     .contact-table th,
     .contact-table td {
@@ -279,7 +285,7 @@
     .contact-table th:nth-child(1)::before {
       content: "";
       position: absolute;
-      left: 25%;
+      left: var(--square-left);
       transform: translate(var(--x-trans-amount), 3%);
       width: var(--table-font-size);
       height: var(--table-font-size);
@@ -311,8 +317,8 @@
     }
 
     .skills-table {
-      width: 75%;
-      margin-left: 15%;
+      width: var(--table-size);
+      margin-left: var(--left-margin-tables);
       text-align: left;
       border-collapse: collapse;
       margin-bottom: var(--bottom-margin);
@@ -336,7 +342,7 @@
     .skills-table th:nth-child(1)::before {
       content: "";
       position: absolute;
-      left: 25%;
+      left: var(--square-left);
       transform: translate(var(--x-trans-amount), 3%);
       width: var(--table-font-size);
       height: var(--table-font-size);
@@ -378,8 +384,8 @@
     }
 
     .education-work-table {
-      width: 75%;
-      margin-left: 15%;
+      width: var(--table-size);
+      margin-left: var(--left-margin-tables);
       text-align: left;
       border-collapse: collapse;
       margin-bottom: var(--bottom-margin);
@@ -406,7 +412,7 @@
       right: 0;
       width: 100%;
       margin: 0 auto;
-      height: 8px;
+      height: 20%;
       background-color: var(--color-highlight);
       z-index: -1;
     }
@@ -427,13 +433,7 @@
       font-family: overpass-mono, monospace;
       font-weight: var(--bold-weight);
       font-style: normal;
-      letter-spacing: 0.03em;
-    }
-
-    .work-subheading {
-      font-family: overpass-mono, monospace;
-      font-weight: var(--medium-weight);
-      font-style: normal;
+      letter-spacing: 0.02em;
     }
 
     .work-subheading {
@@ -448,7 +448,7 @@
       font-family: overpass-mono, monospace;
       font-weight: var(--medium-weight);
       font-style: normal;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
       line-height: 1.5;
     }
 
@@ -464,7 +464,7 @@
     .education-square::before {
       content: "";
       position: absolute;
-      left: 25%;
+      left: var(--square-left);
       transform: translate(var(--x-trans-amount), 3%);
       width: var(--table-font-size);
       height: var(--table-font-size);
@@ -475,7 +475,7 @@
     .work-square::before {
       content: "";
       position: absolute;
-      left: 25%;
+      left: var(--square-left);
       transform: translate(var(--x-trans-amount), 3%);
       width: var(--table-font-size);
       height: var(--table-font-size);
@@ -486,7 +486,7 @@
     .circle-blue::before {
       content: "";
       position: absolute;
-      left: 25%;
+      left: var(--square-left);
       transform: translate(-34%, 3%);
       width: calc(var(--table-font-size) * 0.75);
       height: calc(var(--table-font-size) * 0.75);
@@ -498,7 +498,7 @@
     .circle::before {
       content: "";
       position: absolute;
-      left: 25%;
+      left: var(--square-left);
       transform: translate(-34%, 3%);
       width: calc(var(--table-font-size) * 0.75);
       height: calc(var(--table-font-size) * 0.75);
@@ -553,6 +553,16 @@
         --bullet-font-size: calc(0.75vw + 0.75vh);
         --table-font-size: calc(0.8vw + 1vh);
         --header-height: calc(30vw + 5vh);
+        --bar-pos: 17%;
+        --square-left: 17%;
+
+      }
+
+      .rotate-maybe {
+        margin-left: 10%;
+        font-size: calc(var(--table-font-size) * 1.1);
+        transform: rotate(-90deg) translate(-0%, -50%);
+        transform-origin: center;
       }
 
       .skills-table {
@@ -580,6 +590,17 @@
         border-collapse: collapse;
         margin-bottom: var(--bottom-margin);
         table-layout: fixed;
+      }
+
+      .profile-image {
+        position: absolute;
+        top: var(--profile-top);
+        left: var(--profile-left);
+        transform: translate(-50%, 0) rotate(-5deg);
+        height: 32vw;
+        z-index: 5;
+        transform-origin: center 90%;
+        animation: rotate-back-forth 2s infinite ease-in-out;
       }
     }
   </style>
@@ -615,7 +636,9 @@
 
       <table class="contact-table">
         <tr>
-          <th>CONTACT</th>
+          <th>
+            <p class="rotate-maybe">CONTACT</p>
+          </th>
           <td>email:</td>
           <td>oliwia.jack@gmail.com</td>
         </tr>
@@ -628,7 +651,9 @@
 
       <table class="skills-table">
         <tr>
-          <th>SKILLS</th>
+          <th>
+            <p class="rotate-maybe">SKILLS</p>
+          </th>
           <th>languages</th>
           <th></th>
           <th>programs</th>
@@ -678,9 +703,11 @@
 
       <table class="education-work-table">
         <tr>
-          <th class="education-square" style="color: #0a0cb1;">EDUCATION</th>
+          <th class="education-square" style="color: #0a0cb1;">
+            <p class="rotate-maybe">EDUCATION</p>
+          </th>
           <th>2020-2023</th>
-          <td><span class="highlight">Delft University of Technology (TU Delft), NL</span><br class="larger-br">
+          <td><span class="highlight">TU Delft, Netherlands</span><br class="larger-br">
             <span class="education-work-text">Master of Science in Architecture, Urbanism and Building Sciences (track
               Urbanism).</span>
           </td>
@@ -766,8 +793,10 @@
 
     <table class="education-work-table">
       <tr>
-        <th class="work-square">WORK</th>
-        <th>2023-present</th>
+        <th class="work-square">
+          <p class="rotate-maybe">WORK</p>
+        </th>
+        <th>2023-now</th>
         <td><span class="highlight">Architectural assistant</span><br class="larger-br">
           <span class="work-subheading"><em>ADOFF - Arquitetos, Porto, Portugal.</em></span><br class="larger-br">
           <span class="education-work-text">
@@ -934,7 +963,7 @@
           <span class="in">in</span>
           <span class="where"></span><em>Digital space</em></span>
         </td>
-      </tr></a>
+      </tr>
     </table>
 
     <table class="education-work-table">
@@ -1032,8 +1061,6 @@
         <td></td>
         <td></td>
       </tr>
-    </table>
-
     </table>
   </div>
 </body>
