@@ -51,7 +51,7 @@
       --skills-table-fourth-column-width: 23%;
       --education-work-table-second-column-width: 17%;
       --education-work-table-third-column-width: 66%;
-      --bottom-margin: 40px;
+      --bottom-margin: 20px;
       --square-left: 20%;
       --light-weight: 300;
       --medium-weight: 400;
@@ -425,7 +425,7 @@
     }
 
     .larger-br {
-      margin: 0.25vh 0;
+      margin: 0.2vw 0;
       display: block;
     }
 
@@ -549,13 +549,21 @@
     @media (max-width: 768px) {
 
       :root {
-        --subheader-font-size: calc(0.8vw + 1vh);
-        --bullet-font-size: calc(0.75vw + 0.75vh);
-        --table-font-size: calc(0.8vw + 1vh);
-        --header-height: calc(30vw + 5vh);
+        --header-font-size: calc(1.4vw + 2vh);
+        --subheader-font-size: calc(0.7vw + 1vh);
+        --bullet-font-size: calc(0.7vw + 0.8vh);
+        --table-font-size: calc(0.8vw + 1.2vh);
+        --header-height: calc(30vw + 12vh);
         --bar-pos: 17%;
         --square-left: 17%;
+        --profile-left: 23%;
+        --profile-top: 7%;
+       
 
+      }
+
+      .profile-image {
+        height: 40vw;
       }
 
       .rotate-maybe {
@@ -590,17 +598,6 @@
         border-collapse: collapse;
         margin-bottom: var(--bottom-margin);
         table-layout: fixed;
-      }
-
-      .profile-image {
-        position: absolute;
-        top: var(--profile-top);
-        left: var(--profile-left);
-        transform: translate(-50%, 0) rotate(-5deg);
-        height: 32vw;
-        z-index: 5;
-        transform-origin: center 90%;
-        animation: rotate-back-forth 2s infinite ease-in-out;
       }
     }
   </style>
@@ -707,7 +704,7 @@
             <p class="rotate-maybe">EDUCATION</p>
           </th>
           <th>2020-2023</th>
-          <td><span class="highlight">TU Delft, Netherlands</span><br class="larger-br">
+          <td><span class="highlight">TU Delft, NL</span><br class="larger-br">
             <span class="education-work-text">Master of Science in Architecture, Urbanism and Building Sciences (track
               Urbanism).</span>
           </td>
@@ -762,7 +759,7 @@
         <tr>
           <th class="education-square"></th>
           <th>2015-2019</th>
-          <td><span class="highlight">University of Bath, United Kingdom</span><br class="larger-br">
+          <td><span class="highlight">University of Bath, UK</span><br class="larger-br">
             <span class="education-work-text">Bachelor of Science in Architecture (Honours).</span>
           </td>
         </tr>
@@ -815,8 +812,8 @@
       <tr>
         <th class="work-square"></th>
         <th>2020-2022<br><span class="education-work-text">part time</span></th>
-        <td><span class="highlight">Independent Student Magazine Editor</span><br class="larger-br">
-          <span class="work-subheading"><em>Bnieuws, Communications Office, Delft, Netherlands.</em></span><br
+        <td><span class="highlight">Student Magazine Editor</span><br class="larger-br">
+          <span class="work-subheading"><em>Bnieuws, Communications Office, Delft, NL.</em></span><br
             class="larger-br">
           <span class="education-work-text">
             During my Master's studies, I worked part-time as an editor of <a
@@ -971,7 +968,7 @@
         <th class="work-square"></th>
         <th>2019-2020</th>
         <td><span class="highlight">Architectural Assistant RIBA Part 1</span><br class="larger-br">
-          <span class="work-subheading"><em>Owers Wawrick Architects, Cambridge, United Kingdom.</em></span><br
+          <span class="work-subheading"><em>Owers Wawrick Architects, Cambridge, UK.</em></span><br
             class="larger-br">
           <span class="education-work-text">
             As an architectural assistant in an award-winning practice with a compact team, among other projects,
@@ -993,7 +990,7 @@
         <th class="work-square"></th>
         <th>2019-2020<br><span class="education-work-text">part time</span></th>
         <td><span class="highlight">Student Magazine Editor in Chief</span><br class="larger-br">
-          <span class="work-subheading"><em>PaperspACE, Bath, United Kingdom.</em></span><br class="larger-br">
+          <span class="work-subheading"><em>PaperspACE, Bath, UK.</em></span><br class="larger-br">
           <span class="education-work-text">
             The role of Editor in Chief of <a href="https://paperspacemagazine.com/index.html">PaperspACE</a> involved
             coordinating the writing process of all contributors,
