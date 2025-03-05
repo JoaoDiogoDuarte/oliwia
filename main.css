@@ -28,7 +28,7 @@
     --profile-left: 23%;
     --bar-pos: 20%;
     --profile-top: 0%;
-    --ranking-spacing: 0.75vw;
+    --ranking-spacing: 0.5vw;
     --left-margin-tables: 10%;
     --header-font-size: 3.2vw;
     --subheader-font-size: 1.6vw;
@@ -294,11 +294,13 @@ body html {
 
 
 .skills-ranking-black {
+    font-size: var(--table-font-size);
     color: var(--color-black);
     letter-spacing: var(--ranking-spacing);
 }
 
 .skills-ranking-purple {
+    font-size: var(--table-font-size);
     color: var(--color-purple);
     letter-spacing: var(--ranking-spacing);
 }
