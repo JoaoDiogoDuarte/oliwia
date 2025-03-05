@@ -276,8 +276,7 @@ body html {
     height: 30vw;
     z-index: 5;
     transform-origin: center 90%;
-    opacity: 0;
-    animation: sequentialFade 2.5s infinite;
+    opacity: 1;
 }
 
 .line1 {
@@ -288,8 +287,7 @@ body html {
     transform: translate(-53%, 0);
     z-index: 5;
     transform-origin: center 90%;
-    opacity: 0;
-    animation: sequentialFade2 2.5s infinite;
+    opacity: 1;
 }
 
 
