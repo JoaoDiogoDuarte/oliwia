@@ -16,6 +16,7 @@
 }
 
 :root {
+    --dark-bg: #121212;
     --bar-thickness: 3px;
     --x-trans-amount: -35%;
     --header-left: 60%;
@@ -51,10 +52,10 @@
     --black-weight: 900;
     --color-black: black;
     --color-blue: #080cb0;
+    --color-blue-2: #619fff;
     --color-purple: #c219f8;
     --color-white: white;
     --color-highlight: #c219f7;
-    --color-background: #ffffff;
 }
 
 * {
@@ -65,48 +66,14 @@
 
 body html {
     font-family: Arial, sans-serif;
-    background-color: var(--color-background);
+    background-color: white;
     flex-direction: column;
     align-items: center;
     overflow-y: hidden;
 }
 
-.background-bar-black-longer .background-bar-blue {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
-
-.background-bar-black-longer::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 200%;
-    width: 100%;
-    background: linear-gradient(to right,
-            transparent var(--bar-pos),
-            var(--color-black) var(--bar-pos),
-            var(--color-black) calc(var(--bar-pos) + var(--bar-thickness)),
-            transparent calc(var(--bar-pos) + var(--bar-thickness)),
-            transparent 95%);
-    transform: scale(1) rotate(0deg);
-    z-index: -1;
-}
-
-.background-bar-blue::before {
-    content: "";
-    position: absolute;
-    height: 200%;
-    width: 100%;
-    background: linear-gradient(to right,
-            transparent var(--bar-pos),
-            var(--color-blue) var(--bar-pos),
-            var(--color-blue) calc(var(--bar-pos) + var(--bar-thickness)),
-            transparent calc(var(--bar-pos) + var(--bar-thickness)),
-            transparent 95%);
-    transform: scale(1) rotate(0deg);
-    z-index: -1;
+[data-darkreader-mode="dynamic"] body {
+    background-color: var(--dark-bg);
 }
 
 .background-bar-black {
@@ -117,6 +84,40 @@ body html {
             transparent var(--bar-pos),
             var(--color-black) var(--bar-pos),
             var(--color-black) calc(var(--bar-pos) + var(--bar-thickness)),
+            transparent calc(var(--bar-pos) + var(--bar-thickness)),
+            transparent 95%);
+    z-index: 100;
+}
+
+.background-bar-blue {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    background: linear-gradient(to right,
+            transparent var(--bar-pos),
+            var(--color-blue) var(--bar-pos),
+            var(--color-blue) calc(var(--bar-pos) + var(--bar-thickness)),
+            transparent calc(var(--bar-pos) + var(--bar-thickness)),
+            transparent 95%);
+    z-index: 100;
+    transform: scaleY(1.05);
+}
+
+[data-darkreader-mode="dynamic"] .background-bar-blue {
+    background: linear-gradient(to right,
+            transparent var(--bar-pos),
+            var(--color-blue-2) var(--bar-pos),
+            var(--color-blue-2) calc(var(--bar-pos) + var(--bar-thickness)),
+            transparent calc(var(--bar-pos) + var(--bar-thickness)),
+            transparent 95%);
+}
+
+
+[data-darkreader-mode="dynamic"] .background-bar-black {
+    background: linear-gradient(to right,
+            transparent var(--bar-pos),
+            var(--color-white) var(--bar-pos),
+            var(--color-white) calc(var(--bar-pos) + var(--bar-thickness)),
             transparent calc(var(--bar-pos) + var(--bar-thickness)),
             transparent 95%);
 }
@@ -136,8 +137,26 @@ body html {
     height: 100%;
     top: 0;
     left: 0;
+    z-index: 5;
     background-color: var(--color-blue);
     clip-path: polygon(100% 100%, 0 60%, 0 0, 100% 0);
+}
+
+
+.clip-right {
+    clip-path: polygon(32% 100%, 18.15% 67.6%, 100% 100%);
+    background: white;
+    opacity: 100%;
+    position: absolute;
+    width: 100%;
+    height: 101%;
+    z-index: 7;
+    right: 0;
+    bottom: 0;
+}
+
+[data-darkreader-mode="dynamic"] .clip-right {
+    background-color: var(--dark-bg);
 }
 
 .purple-shape {
@@ -146,6 +165,7 @@ body html {
     height: 100%;
     top: 0;
     left: 0;
+    z-index: 5;
     background-color: var(--color-purple);
     clip-path: polygon(0 100%, 0 0, 55% 0, 0 100%);
 }
@@ -192,6 +212,7 @@ body html {
     font-size: var(--bullet-font-size);
     color: var(--color-white);
     white-space: nowrap;
+    z-index: 10;
     list-style-type: none;
 }
 
@@ -209,35 +230,35 @@ body html {
 }
 
 .profile-image {
-    position: absolute;
+    position: relative;
     top: var(--profile-top);
-    left: var(--profile-left);
-    transform: translate(-50%, 0) rotate(-5deg);
-    height: 22vw;
-    z-index: 5;
+    left: 13%;
     transform-origin: center 90%;
+    height: 22vw;
+    z-index: 10;
+    display: flex;
     animation: rotate-back-forth 2s infinite ease-in-out;
 }
 
 @keyframes rotate-back-forth {
     0% {
-        transform: translate(-50%, 0) rotate(-5deg);
+        transform: rotate(-5deg);
     }
 
     25% {
-        transform: translate(-50%, 0) rotate(-2deg);
+        transform: rotate(-2deg);
     }
 
     50% {
-        transform: translate(-50%, 0) rotate(-5deg);
+        transform: rotate(-5deg);
     }
 
     75% {
-        transform: translate(-50%, 0) rotate(-6deg);
+        transform: rotate(-6deg);
     }
 
     100% {
-        transform: translate(-50%, 0) rotate(-5deg);
+        transform: rotate(-5deg);
     }
 }
 
@@ -274,9 +295,10 @@ body html {
     left: calc(var(--profile-left));
     transform: translate(-53.5%, 2%);
     height: 30vw;
-    z-index: 5;
+    z-index: 6;
     transform-origin: center 90%;
     opacity: 1;
+    mix-blend-mode: screen;
 }
 
 .line1 {
@@ -285,9 +307,10 @@ body html {
     left: calc(var(--profile-left));
     height: 34vw;
     transform: translate(-53%, 0);
-    z-index: 5;
+    z-index: 6;
     transform-origin: center 90%;
     opacity: 1;
+    mix-blend-mode: screen;
 }
 
 
@@ -295,6 +318,10 @@ body html {
     font-size: var(--table-font-size);
     color: var(--color-black);
     letter-spacing: var(--ranking-spacing);
+}
+
+[data-darkreader-mode="dynamic"] .skills-ranking-black {
+    color: white;
 }
 
 .skills-ranking-purple {
@@ -325,6 +352,8 @@ body html {
     font-weight: var(--bold-weight);
     font-style: normal;
     font-size: var(--table-font-size);
+    z-index: 10;
+
 }
 
 .contact-table th:nth-child(1)::before {
@@ -335,6 +364,11 @@ body html {
     width: var(--table-font-size);
     height: var(--table-font-size);
     background-color: var(--color-black);
+    z-index: 10;
+}
+
+[data-darkreader-mode="dynamic"] .contact-table th:nth-child(1)::before {
+    background-color: white;
 }
 
 .contact-table td:nth-child(1) {
@@ -392,6 +426,10 @@ body html {
     width: var(--table-font-size);
     height: var(--table-font-size);
     background-color: var(--color-black);
+}
+
+[data-darkreader-mode="dynamic"] .skills-table th:nth-child(1)::before {
+    background-color: white;
 }
 
 .skills-table th:nth-child(2) {
@@ -517,6 +555,10 @@ body html {
     z-index: 20;
 }
 
+[data-darkreader-mode="dynamic"] .education-square::before {
+    background-color: var(--color-blue-2);
+}
+
 .work-square::before {
     content: "";
     position: absolute;
@@ -526,6 +568,10 @@ body html {
     height: var(--table-font-size);
     background-color: var(--color-black);
     z-index: 25;
+}
+
+[data-darkreader-mode="dynamic"] .work-square::before {
+    background-color: white;
 }
 
 .circle-blue::before {
@@ -540,6 +586,12 @@ body html {
     z-index: 25;
 }
 
+[data-darkreader-mode="dynamic"] .circle-blue::before {
+    background-color: var(--color-blue-2);
+}
+
+
+
 .circle::before {
     content: "";
     position: absolute;
@@ -550,6 +602,10 @@ body html {
     background-color: var(--color-black);
     border-radius: 50%;
     z-index: 25;
+}
+
+[data-darkreader-mode="dynamic"] .circle::before {
+    background-color: white;
 }
 
 .education-work-table th:nth-child(2) {
@@ -606,8 +662,16 @@ body html {
     }
 
     .profile-image {
-        height: calc(25vw) !important;
+        height: 25vw !important;
+        left: 11%;
+    }
 
+    .skills-ranking-black {
+        font-size: calc(var(--table-font-size) * 0.7);
+    }
+
+    .skills-ranking-purple {
+        font-size: calc(var(--table-font-size) * 0.7);
     }
 
     .line0 {
@@ -651,4 +715,68 @@ body html {
         margin-bottom: var(--bottom-margin);
         table-layout: fixed;
     }
+
+    @media prefer-dark-interface {
+        body {
+            background-color: var(--dark-bg);
+        }
+
+        .clip {
+            background-color: var(--dark-bg);
+        }
+
+        .background-bar-blue {
+            background: linear-gradient(to right,
+                    transparent var(--bar-pos),
+                    var(--color-blue-2) var(--bar-pos),
+                    var(--color-blue-2) calc(var(--bar-pos) + var(--bar-thickness)),
+                    transparent calc(var(--bar-pos) + var(--bar-thickness)),
+                    transparent 95%);
+        }
+
+        .background-bar-black {
+            background: linear-gradient(to right,
+                    transparent var(--bar-pos),
+                    var(--color-white) var(--bar-pos),
+                    var(--color-white) calc(var(--bar-pos) + var(--bar-thickness)),
+                    transparent calc(var(--bar-pos) + var(--bar-thickness)),
+                    transparent 95%);
+        }
+
+        .clip-right {
+            background-color: var(--dark-bg);
+        }
+
+        .skills-ranking-black {
+            color: white;
+        }
+
+        .contact-table th:nth-child(1)::before {
+            background-color: white;
+        }
+
+        .skills-table th:nth-child(1)::before {
+            background-color: white;
+        }
+
+        .education-square::before {
+            background-color: var(--color-blue-2);
+        }
+
+        .work-square::before {
+            background-color: white;
+        }
+
+        .circle-blue::before {
+            background-color: var(--color-blue-2);
+        }
+
+        .circle::before {
+            background-color: white;
+        }
+
+
+
+    }
+
 }
