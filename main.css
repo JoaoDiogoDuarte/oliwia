@@ -100,7 +100,6 @@ body html {
             transparent calc(var(--bar-pos) + var(--bar-thickness)),
             transparent 95%);
     z-index: 100;
-    transform: scaleY(1.05);
 }
 
 [data-darkreader-mode="dynamic"] .background-bar-blue {
@@ -315,7 +314,7 @@ body html {
 
 
 .skills-ranking-black {
-    font-size: var(--table-font-size);
+    font-size: calc(var(--table-font-size) * 0.6);
     color: var(--color-black);
     letter-spacing: var(--ranking-spacing);
 }
@@ -325,7 +324,7 @@ body html {
 }
 
 .skills-ranking-purple {
-    font-size: var(--table-font-size);
+    font-size: calc(var(--table-font-size) * 0.6);
     color: var(--color-purple);
     letter-spacing: var(--ranking-spacing);
 }
@@ -393,6 +392,12 @@ body html {
     font-weight: var(--light-weight);
     font-style: normal;
     font-size: var(--table-font-size);
+}
+
+.language-skills {
+    font-family: montserrat, sans-serif;
+    font-weight: var(--light-weight);
+    font-style: normal;
 }
 
 .skills-table {
@@ -496,7 +501,7 @@ body html {
     width: 100%;
     margin: 0 auto;
     height: 20%;
-    background-color: var(--color-highlight);
+    background-color: var(--color-highlight) !important;
     z-index: -1;
 }
 
@@ -659,6 +664,13 @@ body html {
         --square-left: 17%;
         --profile-left: 22%;
         --profile-top: 7%;
+        --contact-table-second-column-width: 19%;
+        --contact-table-third-column-width: 64%;
+        --skills-table-second-column-width: 19%;
+        --skills-table-third-column-width: 22%;
+        --skills-table-fourth-column-width: 22%;
+        --education-work-table-second-column-width: 19%;
+        --education-work-table-third-column-width: 64%;
     }
 
     .profile-image {
@@ -666,13 +678,6 @@ body html {
         left: 11%;
     }
 
-    .skills-ranking-black {
-        font-size: calc(var(--table-font-size) * 0.7);
-    }
-
-    .skills-ranking-purple {
-        font-size: calc(var(--table-font-size) * 0.7);
-    }
 
     .line0 {
         transform: translate(-55%, 10%);
@@ -753,6 +758,7 @@ body html {
 
         .contact-table th:nth-child(1)::before {
             background-color: white;
+
         }
 
         .skills-table th:nth-child(1)::before {
