@@ -241,14 +241,15 @@ body html {
     }
 }
 
+
 @keyframes sequentialFade {
 
     0%,
-    25% {
+    33% {
         opacity: 0;
     }
 
-    26%,
+    34%,
     100% {
         opacity: 1;
     }
@@ -257,24 +258,11 @@ body html {
 @keyframes sequentialFade2 {
 
     0%,
-    50% {
+    65% {
         opacity: 0;
     }
 
-    51%,
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes sequentialFade3 {
-
-    0%,
-    75% {
-        opacity: 0;
-    }
-
-    76%,
+    66%,
     100% {
         opacity: 1;
     }
@@ -282,39 +270,28 @@ body html {
 
 .line0 {
     position: absolute;
-    top: calc(var(--profile-top) - 10%);
-    left: calc(var(--profile-left) + 2%);
-    transform: translate(-50%, 0) rotate(-6deg);
+    top: calc(var(--profile-top)-10%);
+    left: calc(var(--profile-left));
+    transform: translate(-53.5%, 2%);
     height: 30vw;
     z-index: 5;
     transform-origin: center 90%;
     opacity: 0;
-    animation: sequentialFade 3.5s infinite;
+    animation: sequentialFade 2.5s infinite;
 }
 
 .line1 {
     position: absolute;
-    top: calc(var(--profile-top) - 9%);
-    left: calc(var(--profile-left) - 3%);
-    transform: translate(-50%, 0) rotate(-6deg);
-    height: 33vw;
+    top: calc(var(--profile-top)+5%);
+    left: calc(var(--profile-left));
+    height: 34vw;
+    transform: translate(-53%, 0);
     z-index: 5;
     transform-origin: center 90%;
     opacity: 0;
-    animation: sequentialFade2 3.5s infinite;
+    animation: sequentialFade2 2.5s infinite;
 }
 
-.line2 {
-    position: absolute;
-    top: calc(var(--profile-top));
-    left: calc(var(--profile-left) - 4%);
-    transform: translate(-50%, 0) rotate(-6deg);
-    height: 28vw;
-    z-index: 5;
-    transform-origin: center 90%;
-    opacity: 0;
-    animation: sequentialFade3 3.5s infinite;
-}
 
 .skills-ranking-black {
     color: var(--color-black);
@@ -633,48 +610,12 @@ body html {
 
     }
 
-    @keyframes sequentialFade {
-
-        0%,
-        33% {
-            opacity: 0;
-        }
-
-        34%,
-        100% {
-            opacity: 1;
-        }
-    }
-
-    @keyframes sequentialFade2 {
-
-        0%,
-        65% {
-            opacity: 0;
-        }
-
-        66%,
-        100% {
-            opacity: 1;
-        }
-    }
-
     .line0 {
-        top: calc(var(--profile-top) - 10%);
-        left: calc(var(--profile-left) + 2%);
-        height: 45vw;
-        animation-duration: 2.5s;
+        transform: translate(-55%, 10%);
     }
 
     .line1 {
-        top: calc(var(--profile-top) - 10%);
-        left: calc(var(--profile-left) - 6%);
-        height: 48vw;
-        animation-duration: 2.5s;
-    }
-
-    .line2 {
-        height: 0vw;
+        transform: translate(-55%, 5%);
     }
 
     .rotate-maybe {
