@@ -814,3 +814,10 @@ a.pub:hover {
     font-size: var(--fs-small);
     color: var(--muted);
 }
+
+/* transparent drawings (black lines, no background) vanish in dark mode:
+   give recovered images the white "paper" they were made on */
+.archive-article img,
+.viewer-main img {
+    background: #fff;
+}
