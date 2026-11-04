@@ -23,21 +23,7 @@ Copies of my articles whose original pages are offline. Bnieuws (the TU Delft ar
 
 Oct 2022 · in *Dreamscapes*
 
-Original: <https://www.bnieuws.nl/read/dreamed-cities-as-neurodivergent-cities>  
-Archived copy: <https://web.archive.org/web/20250318001951/http://www.bnieuws.nl/read/dreamed-cities-as-neurodivergent-cities> (2025-03-18)  
-On this site: [archive/dreamed-cities-as-neurodivergent-cities/](archive/dreamed-cities-as-neurodivergent-cities/)
-
-#### Toegang geweigerd
-
-Deze pagina wordt getoond, omdat de domeinnaam die u zoekt is geblokkeerd. Bent u de beheerder van deze domeinnaam? Neem dan [contact](http://www.transip.nl/contact/) op met TransIP BV.
-
-Let op:informatie wordt enkel verstrekt aan de beheerder, niet aan derden.
-
-#### Access denied
-
-This domain has been blocked. The administrator of this domain is advised to [contact](https://www.transip.nl/contact/) TransIP BV.
-
-Note:information about this domain is only provided to the administrator, not to third parties.
+_Not recovered yet: the newest archived copy is a "domain blocked" page. Re-run `scripts/revive_articles.py` to pick an older copy._
 
 ---
 
@@ -47,21 +33,7 @@ Note:information about this domain is only provided to the administrator, not to
 
 May 2022 · in *Onbekend Maakt Onbemind*
 
-Original: <https://www.bnieuws.nl/read/the-future-of-home>  
-Archived copy: <https://web.archive.org/web/20250424094550/http://www.bnieuws.nl/read/the-future-of-home> (2025-04-24)  
-On this site: [archive/the-future-of-home/](archive/the-future-of-home/)
-
-#### Toegang geweigerd
-
-Deze pagina wordt getoond, omdat de domeinnaam die u zoekt is geblokkeerd. Bent u de beheerder van deze domeinnaam? Neem dan [contact](http://www.transip.nl/contact/) op met TransIP BV.
-
-Let op:informatie wordt enkel verstrekt aan de beheerder, niet aan derden.
-
-#### Access denied
-
-This domain has been blocked. The administrator of this domain is advised to [contact](https://www.transip.nl/contact/) TransIP BV.
-
-Note:information about this domain is only provided to the administrator, not to third parties.
+_Not recovered yet: the newest archived copy is a "domain blocked" page. Re-run `scripts/revive_articles.py` to pick an older copy._
 
 ---
 
@@ -210,21 +182,7 @@ This article of Oliwia Jackowska became part of [‘Red Light Realm’ – an �
 
 Feb 2021 · in *Taboo*
 
-Original: <https://www.bnieuws.nl/read/taboo-in-translation>  
-Archived copy: <https://web.archive.org/web/20250318003946/http://www.bnieuws.nl/read/taboo-in-translation> (2025-03-18)  
-On this site: [archive/taboo-in-translation/](archive/taboo-in-translation/)
-
-#### Toegang geweigerd
-
-Deze pagina wordt getoond, omdat de domeinnaam die u zoekt is geblokkeerd. Bent u de beheerder van deze domeinnaam? Neem dan [contact](http://www.transip.nl/contact/) op met TransIP BV.
-
-Let op:informatie wordt enkel verstrekt aan de beheerder, niet aan derden.
-
-#### Access denied
-
-This domain has been blocked. The administrator of this domain is advised to [contact](https://www.transip.nl/contact/) TransIP BV.
-
-Note:information about this domain is only provided to the administrator, not to third parties.
+_Not recovered yet: the newest archived copy is a "domain blocked" page. Re-run `scripts/revive_articles.py` to pick an older copy._
 
 ---
 
@@ -234,21 +192,7 @@ Note:information about this domain is only provided to the administrator, not to
 
 Dec 2020 · in *Digital space*
 
-Original: <https://www.bnieuws.nl/read/the-history-of-human-computer-interaction>  
-Archived copy: <https://web.archive.org/web/20250711161539/http://www.bnieuws.nl/read/the-history-of-human-computer-interaction> (2025-07-11)  
-On this site: [archive/the-history-of-human-computer-interaction/](archive/the-history-of-human-computer-interaction/)
-
-#### Toegang geweigerd
-
-Deze pagina wordt getoond, omdat de domeinnaam die u zoekt is geblokkeerd. Bent u de beheerder van deze domeinnaam? Neem dan [contact](http://www.transip.nl/contact/) op met TransIP BV.
-
-Let op:informatie wordt enkel verstrekt aan de beheerder, niet aan derden.
-
-#### Access denied
-
-This domain has been blocked. The administrator of this domain is advised to [contact](https://www.transip.nl/contact/) TransIP BV.
-
-Note:information about this domain is only provided to the administrator, not to third parties.
+_Not recovered yet: the newest archived copy is a "domain blocked" page. Re-run `scripts/revive_articles.py` to pick an older copy._
 
 ---
 

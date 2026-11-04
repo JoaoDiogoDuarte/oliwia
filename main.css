@@ -749,3 +749,9 @@ a.pub:hover {
 .archive-list .archive-meta {
     display: block;
 }
+
+.archive-caption {
+    font-size: var(--fs-small);
+    color: var(--muted);
+    font-style: italic;
+}

@@ -20,6 +20,7 @@ Standard library only. Usage:
 """
 
 import argparse
+import shutil
 import html
 import json
 import re
@@ -136,7 +137,8 @@ def collect_articles(index_path):
     for row in root.find_all("div", "row"):
         when = row.find("p", "when")
         for a in row.find_all("a", "pub"):
-            url = unwrap(a.attrs.get("href", ""))
+            # data-original remembers the source once a link points at a local copy
+            url = a.attrs.get("data-original") or unwrap(a.attrs.get("href", ""))
             if not url or url in seen:
                 continue
             seen.add(url)
@@ -172,36 +174,41 @@ def fetch(url, retries=4, delay=2.0):
     raise last
 
 
-def latest_capture(url, wayback):
-    """Return (timestamp, original) of the newest 200 capture, or None."""
+def captures(url, wayback, limit=12):
+    """Distinct 200/HTML captures of url in the Wayback Machine, newest first."""
     q = urllib.parse.urlencode({
-        "url": url, "output": "json", "filter": "statuscode:200",
-        "fl": "timestamp,original", "limit": "-1",
-    })
+        "url": url, "output": "json", "fl": "timestamp,original",
+        "filter": ["statuscode:200", "mimetype:text/html"], "collapse": "digest",
+    }, doseq=True)
     try:
         body, _ = fetch(f"{wayback}/cdx/search/cdx?{q}")
+        rows = json.loads(body or b"[]")
     except Exception as e:  # noqa: BLE001
         print(f"    CDX lookup failed: {e}", file=sys.stderr)
-        return None
-    try:
-        rows = json.loads(body or b"[]")
-    except json.JSONDecodeError:
-        return None
-    rows = [r for r in rows if r and r[0] != "timestamp"]  # drop header row
-    return (rows[-1][0], rows[-1][1]) if rows else None
+        return []
+    rows = [(r[0], r[1]) for r in rows if r and r[0] != "timestamp"]
+    return rows[::-1][:limit]
 
 
-def available_capture(url, api="https://archive.org/wayback/available"):
-    """Fallback lookup through archive.org's availability API."""
-    try:
-        body, _ = fetch(f"{api}?" + urllib.parse.urlencode({"url": url}), retries=2)
-        snap = json.loads(body).get("archived_snapshots", {}).get("closest") or {}
-    except Exception as e:  # noqa: BLE001
-        print(f"    availability lookup failed: {e}", file=sys.stderr)
-        return None
-    if snap.get("available") and str(snap.get("status")) == "200":
-        return snap["timestamp"], url
-    return None
+def available_captures(url, api="https://archive.org/wayback/available"):
+    """Fallback lookup through archive.org's availability API: the capture
+    closest to now and to a few earlier years (before the domain died)."""
+    found = []
+    for year in (None, "2024", "2023", "2022", "2021"):
+        params = {"url": url}
+        if year:
+            params["timestamp"] = year
+        try:
+            body, _ = fetch(f"{api}?" + urllib.parse.urlencode(params), retries=2)
+            snap = json.loads(body).get("archived_snapshots", {}).get("closest") or {}
+        except Exception as e:  # noqa: BLE001
+            print(f"    availability lookup failed: {e}", file=sys.stderr)
+            continue
+        if snap.get("available") and str(snap.get("status")) == "200":
+            if snap["timestamp"] not in [t for t, _ in found]:
+                found.append((snap["timestamp"], url))
+        time.sleep(1)
+    return sorted(found, reverse=True)
 
 
 def decode(body, ctype):
@@ -218,21 +225,38 @@ def decode(body, ctype):
 # Article extraction and Markdown conversion
 # --------------------------------------------------------------------------- #
 
-DROP = {"script", "style", "noscript", "nav", "header", "footer", "aside", "form",
+DROP = {"script", "style", "nav", "header", "footer", "aside", "form",
         "button", "svg", "iframe", "template", "select", "input"}
 # matched against whole words inside class names / ids ("sidebar-right", "post_meta")
 BOILERPLATE = re.compile(r"(?:^|[-_])(nav|navbar|menu|footer|header|share|sharing|social|"
                          r"cookie|cookies|related|comment|comments|sidebar|newsletter|"
                          r"subscribe|breadcrumb|breadcrumbs|byline|avatar|author|meta|"
-                         r"hero|tags|categories)(?:[-_]|$)", re.I)
+                         r"hero|tags|categories|teaser|teasers|recommended|read-more|"
+                         r"more-articles|pagination|newsletter-signup)(?:[-_]|$)", re.I)
+
+# Pages a dead domain serves instead of the article (registrar blocks, parking, spam)
+NOT_AN_ARTICLE = re.compile(r"toegang geweigerd|domain has been blocked|domeinnaam .{0,40}geblokkeerd|"
+                            r"this domain (?:is|may be) for sale|buy this domain|domain parking|"
+                            r"parked (?:free|domain)|online casino", re.I)
+
+
+# Blocks whose class looks like clutter ("post-wrap sidebar-on") but that hold
+# most of the page's text: layout wrappers, not sidebars. Filled per page.
+LAYOUT_WRAPPERS = set()
 
 
 def is_noise(n):
     if n.tag in DROP:
         return True
+    if id(n) in LAYOUT_WRAPPERS:
+        return False
+    if n.tag == "noscript":
+        return n.find("img") is None
     if n.tag in ("body", "main", "article"):
         return False
     tokens = n.cls() + ([n.attrs["id"]] if n.attrs.get("id") else [])
+    # "RelatedArticles" / "Article_related__x9" -> "related-articles" / "article-related-x9"
+    tokens = [re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "-", t).lower() for t in tokens]
     return any(BOILERPLATE.search(t) for t in tokens)
 
 
@@ -260,25 +284,50 @@ def ancestors(n, stop=None):
 
 
 def main_content(root):
-    """Pick <article>, else <main>, else the element holding the most paragraph text."""
-    for tag in ("article", "main"):
-        cands = [n for n in root.find_all(tag) if paragraph_score(n) > 200]
-        if cands:
-            return max(cands, key=paragraph_score)
-    best, best_score = root, 0
-    for n in root.iter():
-        if n.tag in ("div", "section", "td") and not is_noise(n):
-            # score by direct-ish paragraphs so <body> doesn't always win
-            s = sum(len(squash(p.text())) for p in n.children
-                    if isinstance(p, Node) and p.tag in ("p", "blockquote", "h2", "h3", "ul", "ol"))
-            if s > best_score:
-                best, best_score = n, s
-    if best is root or best_score < 200:
-        body = root.find("body")
-        return body or root
-    # climb while the parent adds more paragraph text (article split into blocks)
-    while best.parent is not None and best.parent.tag in ("div", "section") \
-            and paragraph_score(best.parent) > paragraph_score(best) * 1.3:
+    """The smallest block that holds most of the page's paragraph text.
+
+    Paragraph text inside navigation, footers, sidebars etc. doesn't count.
+    This copes with sites that put only the intro inside <article> and the
+    body text in a sibling block."""
+    body = root.find("body") or root
+    LAYOUT_WRAPPERS.clear()
+    raw = {}
+    for p in body.find_all("p"):
+        length = len(squash(p.text()))
+        for a in ancestors(p, stop=body.parent):
+            raw[id(a)] = raw.get(id(a), 0) + length
+    for n in body.iter():
+        if n.tag not in DROP and raw.get(id(n), 0) >= 0.5 * raw.get(id(body), 1) and is_noise(n):
+            LAYOUT_WRAPPERS.add(id(n))
+    score = {}
+    for p in body.find_all("p"):
+        length = len(squash(p.text()))
+        if not length:
+            continue
+        chain = [p] + list(ancestors(p, stop=body.parent))
+        if any(is_noise(a) for a in chain):
+            continue
+        for a in chain[1:]:
+            score[id(a)] = score.get(id(a), 0) + length
+    total = score.get(id(body), 0)
+    if total < 200:
+        return body
+    size = {}
+    for n in body.iter():
+        for a in [n] + list(ancestors(n, stop=body.parent)):
+            size[id(a)] = size.get(id(a), 0) + 1
+    good = [n for n in body.iter()
+            if n.tag in ("div", "section", "article", "main", "td", "body")
+            and score.get(id(n), 0) >= 0.8 * total]
+    if not good:
+        return body
+    best = min(good, key=lambda n: size[id(n)])
+    # take in the surrounding block when it only adds a little text (usually the
+    # intro/standfirst kept beside the body), never a whole extra section
+    while best is not body and best.parent is not None:
+        mine, theirs = score.get(id(best), 0), score.get(id(best.parent), 0)
+        if theirs == mine or theirs - mine > 0.25 * mine:
+            break
         best = best.parent
     return best
 
@@ -392,14 +441,14 @@ def block_md(n, base, depth=0):
             flush()
             img = c.find("img")
             cap = c.find("figcaption")
-            if img and (img.attrs.get("src") or img.attrs.get("data-local")):
+            if img and img.attrs.get("data-local"):
                 alt = squash(cap.text()) if cap else img.attrs.get("alt", "")
                 blocks.append(f"![{alt}]({image_url(img, base)})")
-                if cap and squash(cap.text()):
-                    blocks.append(f"*{squash(cap.text())}*")
+            if cap and squash(cap.text()):
+                blocks.append(f"*{squash(cap.text())}*")
         elif t == "img":
             flush()
-            if c.attrs.get("src"):
+            if c.attrs.get("data-local"):
                 blocks.append(f"![{c.attrs.get('alt', '')}]({image_url(c, base)})")
         elif t == "hr":
             flush()
@@ -445,6 +494,21 @@ IMG_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
              "image/webp": ".webp", "image/svg+xml": ".svg", "image/avif": ".avif"}
 
 
+def is_dead(url):
+    host = urllib.parse.urlparse(url or "").netloc.lower()
+    return any(host == d or host.endswith("." + d) for d in DEAD_DOMAINS)
+
+
+def unproxy(src):
+    """/_next/image?url=<original>&w=... -> <original> (Next.js image optimiser)."""
+    parts = urllib.parse.urlparse(src)
+    if parts.path.endswith("/_next/image"):
+        inner = urllib.parse.parse_qs(parts.query).get("url")
+        if inner:
+            return inner[0]
+    return src
+
+
 def best_src(img):
     """Real image URL, looking past lazy-loading placeholders and srcset."""
     for key in ("data-src", "data-lazy-src", "data-original"):
@@ -464,6 +528,12 @@ def best_src(img):
     return "" if src.startswith("data:") else src
 
 
+def image_sources(src, wayback, ts):
+    """Where to try downloading an image from, in order."""
+    archived = [f"{wayback}/web/{ts}im_/{src}"] if ts else []
+    return archived if is_dead(src) else [src] + archived
+
+
 def save_images(body, base, folder, wayback, ts):
     """Download every image in the article into folder/images and point the
     <img> nodes at the local files. Images that fail to download are removed."""
@@ -475,24 +545,27 @@ def save_images(body, base, folder, wayback, ts):
         if any(is_noise(a) for a in ancestors(img, stop=body)):
             img.tag = "#drop"  # avatars, share icons, headers: not part of the article
             continue
-        src = absolute(best_src(img), base)
+        src = absolute(unproxy(absolute(best_src(img), base)), base)
         if not src:
             img.tag = "#drop"
             continue
         if src in saved:  # same picture used twice: reuse the saved file
             img.attrs = {"src": saved[src], "alt": img.attrs.get("alt", ""), "data-local": "1"}
             continue
-        url = f"{wayback}/web/{ts}im_/{src}" if ts else src
-        try:
-            data, ctype = fetch(url, retries=3)
-        except Exception as e:  # noqa: BLE001
-            print(f"    image failed ({src}): {e}", file=sys.stderr)
+        data = ctype = None
+        for url in image_sources(src, wayback, ts):
+            try:
+                data, ctype = fetch(url, retries=3)
+            except Exception as e:  # noqa: BLE001
+                print(f"    image failed ({url}): {e}", file=sys.stderr)
+                continue
+            if (ctype or "").lower().startswith("image/"):
+                break
+            data = None
+        if data is None:
             img.tag = "#drop"
             continue
         ctype = (ctype or "").split(";")[0].strip().lower()
-        if not ctype.startswith("image/"):
-            img.tag = "#drop"
-            continue
         count += 1
         stem = re.sub(r"[^a-z0-9]+", "-",
                       Path(urllib.parse.urlparse(src).path).stem.lower()).strip("-")[:50]
@@ -522,6 +595,12 @@ def to_html(n, base):
             continue
         if c.tag in ("#drop", "h1") or is_noise(c):
             continue
+        if c.tag == "figure" and not any(x.tag == "img" and x.attrs.get("data-local")
+                                         for x in c.iter()):
+            cap = c.find("figcaption")
+            if cap and to_html(cap, base).strip():
+                out.append(f'<p class="archive-caption">{to_html(cap, base)}</p>')
+            continue
         if c.tag not in KEEP:  # unwrap div/span/section/etc.
             out.append(to_html(c, base))
             continue
@@ -547,6 +626,8 @@ def to_html(n, base):
 
 def pretty(markup):
     """Put block elements on their own lines so the saved pages are readable."""
+    markup = re.sub(r"(?:\s*<br>)+\s*(</(?:p|li|h[2-6]|figcaption|blockquote)>)", r"\1", markup)
+    markup = re.sub(r"(<(?:p|li)(?: [^>]*)?>)\s*(?:<br>\s*)+", r"\1", markup)
     markup = re.sub(r"\s*(</?(?:p|h[2-6]|ul|ol|li|blockquote|figure|figcaption|hr|table|tr|pre)[^>]*>)\s*",
                     r"\n\1", markup)
     markup = re.sub(r"\n(</(?:p|h[2-6]|li|figcaption|pre)>)", r"\1", markup)
@@ -571,21 +652,22 @@ def revive(item, wayback):
     if any(h in host for h in SKIP_HOSTS):
         return {"status": "skipped", "note": f"Publisher/repository page, not copied: <{url}>"}
 
-    cap = latest_capture(url, wayback)
-    if not cap and wayback == "https://web.archive.org":
-        cap = available_capture(url)
-    sources = []
-    if cap:
-        ts, original = cap
-        sources.append((f"{wayback}/web/{ts}id_/{original}",
-                        f"https://web.archive.org/web/{ts}/{original}", ts))
-    sources.append((url, url, None))  # live page as fallback
+    def sources():
+        if not is_dead(url):
+            yield url, url, None  # healthy sites: live page first, archive only if that fails
+        caps = captures(url, wayback)
+        if not caps and wayback == "https://web.archive.org":
+            caps = available_captures(url)
+        for ts, original in caps[:8]:
+            yield (f"{wayback}/web/{ts}id_/{original}",
+                   f"https://web.archive.org/web/{ts}/{original}", ts)
 
     global IMG_PREFIX
-    for raw_url, cite_url, ts in sources:
+    rejected = 0
+    for raw_url, cite_url, ts in sources():
         IMG_PREFIX = f"{wayback}/web/{ts}im_/" if ts else ""
         try:
-            # archived copies get full retries; the live fallback is tried once
+            # archived copies get full retries; the live page is tried once
             body, ctype = fetch(raw_url, retries=4 if ts else 1)
         except Exception as e:  # noqa: BLE001
             print(f"    fetch failed ({raw_url}): {e}", file=sys.stderr)
@@ -594,13 +676,21 @@ def revive(item, wayback):
             continue
         root = parse(decode(body, ctype))
         node = main_content(root)
-        if len(to_markdown_node(node, url)) < 200:
-            print(f"    too little text extracted from {raw_url}", file=sys.stderr)
+        text = to_markdown_node(node, url)
+        if NOT_AN_ARTICLE.search(text) or len(text) < 400:
+            rejected += 1
+            where = f"capture {ts}" if ts else "live page"
+            print(f"    skipping {where}: not the article "
+                  f"({'blocked/parked domain page' if NOT_AN_ARTICLE.search(text) else 'too little text'})",
+                  file=sys.stderr)
             continue
+        if len(text) < 1500:
+            print(f"    warning: only {len(text)} characters of text, check this one", file=sys.stderr)
         return {"status": "ok", "page_title": page_title(root), "node": node, "ts": ts,
                 "source": cite_url,
                 "captured": f"{ts[:4]}-{ts[4:6]}-{ts[6:8]}" if ts else "live page"}
-    return {"status": "missing", "note": f"No archived copy found for <{url}>"}
+    why = "only blocked/placeholder copies found" if rejected else "no archived copy found"
+    return {"status": "missing", "note": f"Not recovered ({why}): <{url}>"}
 
 
 # --------------------------------------------------------------------------- #
@@ -735,17 +825,36 @@ def render_markdown(results):
     return "\n".join(out).rstrip() + "\n"
 
 
+def link_for(item, res):
+    """Where the site should link: the local copy if it came from the archive,
+    otherwise the original (or its Wayback copy, for dead domains)."""
+    if res["status"] == "ok" and res["ts"]:
+        return f"archive/{res['slug']}/"
+    if is_dead(item["url"]):
+        return f"https://web.archive.org/web/2022/{item['url']}"
+    return item["url"]
+
+
 def update_index(index_path, results):
-    """Point article links in index.html at the local copies."""
+    """Point the article links in index.html at the right place."""
     text = index_path.read_text(encoding="utf-8")
+    targets = {item["url"]: link_for(item, res) for item, res in results
+               if res["status"] in ("ok", "missing")}
     changed = 0
-    for item, res in results:
-        if res["status"] != "ok" or not res["ts"]:
-            continue  # live originals keep their own links
-        url = re.escape(item["url"])
-        pattern = re.compile(r'(<a class="pub" href=")(?:https?://web\.archive\.org/web/[^/"]+/)?' + url + '"')
-        text, n = pattern.subn(rf'\g<1>archive/{res["slug"]}/"', text)
-        changed += n
+
+    def relink(m):
+        nonlocal changed
+        tag = m.group(0)
+        href = re.search(r'href="([^"]*)"', tag)
+        orig = re.search(r'data-original="([^"]*)"', tag)
+        url = html.unescape(orig.group(1)) if orig else unwrap(html.unescape(href.group(1) if href else ""))
+        if url not in targets:
+            return tag
+        new = f'<a class="pub" href="{html.escape(targets[url])}" data-original="{html.escape(url)}">'
+        changed += new != tag
+        return new
+
+    text = re.sub(r'<a class="pub"[^>]*>', relink, text)
     index_path.write_text(text, encoding="utf-8")
     return changed
 
@@ -797,6 +906,10 @@ def main():
             print(f"    -> ok ({res['captured']}, {imgs} images) -> {folder.relative_to(ROOT) if folder.is_relative_to(ROOT) else folder}/")
         else:
             print(f"    -> {res['status']}")
+            stale = outdir / slug_for(item["url"])
+            if res["status"] == "missing" and (stale / "index.html").exists():
+                shutil.rmtree(stale)  # remove a bad copy from an earlier run
+                print(f"    removed old copy {stale.name}/")
         results.append((item, res))
         if n < len(items):
             time.sleep(args.pause)
@@ -804,6 +917,10 @@ def main():
     ok = [r for _, r in results if r["status"] == "ok"]
     if ok and not args.only:
         write_archive_index(results, outdir)
+    if args.only:
+        print(f"\n--only: wrote the page(s) above; {Path(args.output).name}, archive/index.html "
+              f"and index.html were left alone.")
+        return
     Path(args.output).write_text(render_markdown(results), encoding="utf-8")
     print(f"\nWrote {args.output}: {len(ok)}/{len(results)} articles recovered.")
     if ok and not args.no_update_index and not args.only:
