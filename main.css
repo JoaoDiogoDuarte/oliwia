@@ -794,6 +794,7 @@ a.pub:hover {
 }
 
 .viewer-main {
+    max-width: none;
     padding: 1rem var(--gutter) 2rem;
 }
 

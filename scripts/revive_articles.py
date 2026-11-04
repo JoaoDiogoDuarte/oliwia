@@ -683,6 +683,9 @@ CSS_VERSION = "1"
 
 MAX_SIDE = 2000      # px; magazine-page scans stay readable at this size
 WEBP_QUALITY = 80
+# Articles whose images are kept untouched in images/full/ (shown on the image
+# pages) next to the lighter preview: magazine pages where every detail matters.
+KEEP_ORIGINALS = {"the-history-of-human-computer-interaction"}
 
 
 def compress_images(body, folder):
@@ -693,6 +696,8 @@ def compress_images(body, folder):
     except ImportError:
         print("    (install Pillow to compress images: pip install Pillow)", file=sys.stderr)
         return
+    keep = folder.name in KEEP_ORIGINALS
+    quality = 90 if keep else WEBP_QUALITY
     done = {}
     for img in [n for n in body.iter() if n.tag == "img" and n.attrs.get("data-local")]:
         src = img.attrs["src"]
@@ -700,13 +705,17 @@ def compress_images(body, folder):
             img.attrs.update(done[src])
             continue
         path = folder / src
+        if keep and path.suffix.lower() != ".webp":
+            (folder / "images" / "full").mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, folder / "images" / "full" / path.name)
+        source = full_version(folder, src) if keep else None  # preview made from the original
         try:
-            with Image.open(path) as im:
+            with Image.open(source or path) as im:
                 animated = getattr(im, "is_animated", False)
                 if path.suffix.lower() == ".svg" or animated:
                     done[src] = {}
                     continue
-                if path.suffix.lower() == ".webp" and max(im.size) <= MAX_SIDE:
+                if path.suffix.lower() == ".webp" and max(im.size) <= MAX_SIDE and source is None:
                     done[src] = {"width": str(im.size[0]), "height": str(im.size[1])}
                     img.attrs.update(done[src])
                     continue
@@ -716,7 +725,7 @@ def compress_images(body, folder):
                 if im.mode not in ("RGB", "RGBA", "L", "LA"):
                     im = im.convert("RGBA" if "A" in im.getbands() else "RGB")
                 out = path.with_suffix(".webp")
-                im.save(out, "WEBP", quality=WEBP_QUALITY, method=6)
+                im.save(out, "WEBP", quality=quality, method=6)
                 size = im.size
         except Exception as e:  # noqa: BLE001  (unreadable/odd files: keep as they are)
             print(f"    could not compress {path.name}: {e}", file=sys.stderr)
@@ -727,6 +736,14 @@ def compress_images(body, folder):
         new = {"src": f"images/{out.name}", "width": str(size[0]), "height": str(size[1])}
         img.attrs.update(new)
         done[src] = new
+
+
+def full_version(folder, src):
+    """images/full/<same name>.<any ext> if an untouched original was kept."""
+    full = folder / "images" / "full"
+    if not full.is_dir():
+        return None
+    return next((f for f in sorted(full.iterdir()) if f.stem == Path(src).stem), None)
 
 
 def viewer_name(src):
@@ -763,7 +780,7 @@ VIEWER = """<!DOCTYPE html>
 """
 
 
-def write_viewer_pages(item, body, folder):
+def write_viewer_pages(item, body, folder):  # noqa: C901
     """One small page per image: the picture at full width, its caption,
     previous/next, and a link back to the same spot in the article."""
     imgs, seen = [], set()
@@ -778,11 +795,20 @@ def write_viewer_pages(item, body, folder):
         caption = text_of(cap) if cap else ""
         size = (f' width="{img.attrs["width"]}" height="{img.attrs["height"]}"'
                 if img.attrs.get("width") else "")
+        full = full_version(folder, src)
+        shown = f"full/{full.name}" if full else Path(src).name
+        if full:
+            try:
+                from PIL import Image
+                with Image.open(full) as im:
+                    size = f' width="{im.size[0]}" height="{im.size[1]}"'
+            except Exception:  # noqa: BLE001
+                pass
         link = lambda j, label: (f'<a href="{Path(viewer_name(imgs[j].attrs["src"])).name}">{label}</a>'
                                  if 0 <= j < len(imgs) else f'<span aria-hidden="true">{label}</span>')
         page = VIEWER.format(
             n=i + 1, total=len(imgs), title=html.escape(item["title"]), css=CSS_VERSION,
-            anchor=Path(src).stem, file=html.escape(Path(src).name),
+            anchor=Path(src).stem, file=html.escape(shown),
             alt=html.escape(img.attrs.get("alt") or caption), size=size,
             prev=link(i - 1, "← Previous"), next=link(i + 1, "Next →"),
             caption=f'      <figcaption>{html.escape(caption)}</figcaption>\n' if caption else "")
@@ -792,7 +818,13 @@ def write_viewer_pages(item, body, folder):
 def remove_unused_images(folder, body):
     used = {n.attrs["src"] for n in body.iter() if n.tag == "img" and n.attrs.get("data-local")}
     if (folder / "images").exists():
+        stems = {Path(u).stem for u in used}
         for f in (folder / "images").iterdir():
+            if f.is_dir():
+                for g in f.iterdir():
+                    if g.stem not in stems:
+                        g.unlink()
+                continue
             if f"images/{f.name}" not in used:
                 f.unlink()
         if not any((folder / "images").iterdir()):
@@ -1154,6 +1186,9 @@ def main():
                     help="Wayback Machine base URL (for testing)")
     ap.add_argument("--pause", type=float, default=1.5,
                     help="seconds to wait between articles (be polite to archive.org)")
+    ap.add_argument("--keep-originals", default=",".join(sorted(KEEP_ORIGINALS)),
+                    help="comma-separated article slugs whose images are also kept "
+                         "untouched in images/full/ (default: %(default)s)")
     ap.add_argument("--rebuild", action="store_true",
                     help="no downloading: re-clean and re-compress the pages already in archive/")
     args = ap.parse_args()
@@ -1161,6 +1196,8 @@ def main():
     index_path = Path(args.index)
     outdir = Path(args.archive_dir)
     CSS_VERSION = css_version(index_path.parent / "main.css")
+    KEEP_ORIGINALS.clear()
+    KEEP_ORIGINALS.update(x.strip() for x in args.keep_originals.split(",") if x.strip())
     wayback = args.wayback.rstrip("/")
     items = collect_articles(index_path)
     if args.only:
