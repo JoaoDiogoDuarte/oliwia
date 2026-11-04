@@ -649,3 +649,103 @@ a.pub:hover {
         column-gap: 1.25em;
     }
 }
+
+/* ---------- recovered articles (archive/) ---------- */
+
+.archive-main {
+    overflow-wrap: anywhere;
+    max-width: 44rem;
+    margin-inline: auto;
+    padding: 2rem var(--gutter) 3rem;
+}
+
+.archive-back {
+    font-family: var(--mono);
+    font-size: var(--fs-small);
+}
+
+.archive-main > .archive-back:last-child {
+    margin-top: 3rem;
+}
+
+.archive-note {
+    margin: 1.5rem 0 2rem;
+    padding: 0.9rem 1rem;
+    border-left: 4px solid var(--purple);
+    background: color-mix(in srgb, var(--purple) 8%, var(--bg));
+    font-size: var(--fs-small);
+}
+
+.archive-main > h1,
+.archive-article h1 {
+    font-family: var(--sans);
+    font-weight: 800;
+    font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.2rem);
+    line-height: 1.15;
+    margin-top: 1.5rem;
+}
+
+.archive-meta {
+    font-family: var(--mono);
+    font-size: var(--fs-small);
+    color: var(--muted);
+}
+
+.archive-byline {
+    font-family: var(--mono);
+    margin-top: 0.5rem;
+}
+
+.archive-article header {
+    margin-bottom: 2rem;
+}
+
+.archive-article > :not(header) + * {
+    margin-top: 1em;
+}
+
+.archive-article h2,
+.archive-article h3,
+.archive-article h4 {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.05em;
+    margin-top: 2em;
+}
+
+.archive-article ul,
+.archive-article ol {
+    padding-left: 1.5em;
+}
+
+.archive-article blockquote {
+    border-left: 3px solid var(--rail-black);
+    padding-left: 1em;
+    font-style: italic;
+}
+
+.archive-article figure img,
+.archive-article img {
+    width: 100%;
+    height: auto;
+}
+
+.archive-article figcaption {
+    font-size: var(--fs-small);
+    color: var(--muted);
+    margin-top: 0.4em;
+}
+
+.archive-list {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.archive-list li {
+    padding-block: 0.6rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+}
+
+.archive-list .archive-meta {
+    display: block;
+}

@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Revive the articles linked from index.html into a single Markdown file.
+"""Revive the articles linked from index.html and host copies on the site.
 
 For every article link on the site (links with class="pub"), the script:
   1. unwraps Wayback Machine links back to the original URL,
-  2. asks the Wayback CDX API for the most recent good capture,
+  2. finds the most recent good capture in the Wayback Machine,
   3. downloads the raw archived page (falls back to the live URL),
-  4. extracts the article body and converts it to Markdown,
-  5. writes everything to articles.md in the site root.
+  4. extracts the article body and downloads its images,
+  5. writes archive/<slug>/index.html (a page on this site with a note
+     explaining where the copy came from) plus archive/index.html,
+  6. writes articles.md in the site root with every article in Markdown,
+  7. points the article links in index.html at the new local pages.
 
 PDFs and paywalled publisher pages are listed with their links, not copied.
 
 Standard library only. Usage:
-    python3 scripts/revive_articles.py              # writes articles.md
-    python3 scripts/revive_articles.py -o out.md
-    python3 scripts/revive_articles.py --only bnieuws
+    python3 scripts/revive_articles.py
+    python3 scripts/revive_articles.py --only cheap-absurdity   # trial run, site untouched
+    python3 scripts/revive_articles.py --no-update-index
 """
 
 import argparse
@@ -36,6 +39,7 @@ SKIP_HOSTS = ("doi.org", "repository.tudelft.nl")  # paywalled / PDF repositorie
 # Set per article: when the text comes from an archived capture, images are
 # loaded from the same capture (the originals are usually gone too).
 IMG_PREFIX = ""
+MD_IMG_BASE = ""  # path prefix for locally saved images, as seen from articles.md
 
 
 # --------------------------------------------------------------------------- #
@@ -187,6 +191,19 @@ def latest_capture(url, wayback):
     return (rows[-1][0], rows[-1][1]) if rows else None
 
 
+def available_capture(url, api="https://archive.org/wayback/available"):
+    """Fallback lookup through archive.org's availability API."""
+    try:
+        body, _ = fetch(f"{api}?" + urllib.parse.urlencode({"url": url}), retries=2)
+        snap = json.loads(body).get("archived_snapshots", {}).get("closest") or {}
+    except Exception as e:  # noqa: BLE001
+        print(f"    availability lookup failed: {e}", file=sys.stderr)
+        return None
+    if snap.get("available") and str(snap.get("status")) == "200":
+        return snap["timestamp"], url
+    return None
+
+
 def decode(body, ctype):
     m = re.search(r"charset=([\w-]+)", ctype or "")
     for enc in ([m.group(1)] if m else []) + ["utf-8", "latin-1"]:
@@ -203,15 +220,20 @@ def decode(body, ctype):
 
 DROP = {"script", "style", "noscript", "nav", "header", "footer", "aside", "form",
         "button", "svg", "iframe", "template", "select", "input"}
-BOILERPLATE = re.compile(r"(nav|menu|footer|header|share|social|cookie|related|"
-                         r"comment|sidebar|newsletter|subscribe|breadcrumb)", re.I)
+# matched against whole words inside class names / ids ("sidebar-right", "post_meta")
+BOILERPLATE = re.compile(r"(?:^|[-_])(nav|navbar|menu|footer|header|share|sharing|social|"
+                         r"cookie|cookies|related|comment|comments|sidebar|newsletter|"
+                         r"subscribe|breadcrumb|breadcrumbs|byline|avatar|author|meta|"
+                         r"hero|tags|categories)(?:[-_]|$)", re.I)
 
 
 def is_noise(n):
     if n.tag in DROP:
         return True
-    marker = " ".join(n.cls()) + " " + (n.attrs.get("id") or "")
-    return bool(BOILERPLATE.search(marker)) and n.tag not in ("body", "main", "article")
+    if n.tag in ("body", "main", "article"):
+        return False
+    tokens = n.cls() + ([n.attrs["id"]] if n.attrs.get("id") else [])
+    return any(BOILERPLATE.search(t) for t in tokens)
 
 
 def page_title(root):
@@ -268,8 +290,11 @@ def absolute(url, base):
     return unwrap(url)
 
 
-def image_url(src, base):
-    src = absolute(src, base)
+def image_url(img, base):
+    """Where an <img> points in Markdown: the saved local copy if there is one."""
+    if img.attrs.get("data-local"):
+        return MD_IMG_BASE + img.attrs["src"]
+    src = absolute(img.attrs.get("src"), base)
     return f"{IMG_PREFIX}{src}" if src and IMG_PREFIX and not src.startswith("data:") else src
 
 
@@ -293,7 +318,7 @@ def inline_md(n, base):
         elif t == "br":
             out.append("  \n")
         elif t == "img":
-            src = image_url(c.attrs.get("src"), base)
+            src = image_url(c, base)
             if src:
                 out.append(f"![{c.attrs.get('alt', '')}]({src})")
         elif t == "code":
@@ -353,15 +378,15 @@ def block_md(n, base, depth=0):
             flush()
             img = c.find("img")
             cap = c.find("figcaption")
-            if img and img.attrs.get("src"):
+            if img and (img.attrs.get("src") or img.attrs.get("data-local")):
                 alt = squash(cap.text()) if cap else img.attrs.get("alt", "")
-                blocks.append(f"![{alt}]({image_url(img.attrs['src'], base)})")
+                blocks.append(f"![{alt}]({image_url(img, base)})")
                 if cap and squash(cap.text()):
                     blocks.append(f"*{squash(cap.text())}*")
         elif t == "img":
             flush()
             if c.attrs.get("src"):
-                blocks.append(f"![{c.attrs.get('alt', '')}]({image_url(c.attrs['src'], base)})")
+                blocks.append(f"![{c.attrs.get('alt', '')}]({image_url(c, base)})")
         elif t == "hr":
             flush()
             blocks.append("---")
@@ -388,18 +413,141 @@ def block_md(n, base, depth=0):
     return "\n\n".join(b for b in blocks if b.strip())
 
 
+def to_markdown_node(body, base):
+    md = block_md(body, base)
+    return re.sub(r"\n{3,}", "\n\n", md).strip()
+
+
 def to_markdown(markup, base):
     root = parse(markup)
-    title = page_title(root)
-    body = main_content(root)
-    md = block_md(body, base)
-    md = re.sub(r"\n{3,}", "\n\n", md).strip()
-    return title, md
+    return page_title(root), to_markdown_node(main_content(root), base)
 
 
 # --------------------------------------------------------------------------- #
-# Main
+# Images
 # --------------------------------------------------------------------------- #
+
+IMG_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/gif": ".gif",
+             "image/webp": ".webp", "image/svg+xml": ".svg", "image/avif": ".avif"}
+
+
+def best_src(img):
+    """Real image URL, looking past lazy-loading placeholders and srcset."""
+    for key in ("data-src", "data-lazy-src", "data-original"):
+        if img.attrs.get(key):
+            return img.attrs[key]
+    srcset = img.attrs.get("srcset") or img.attrs.get("data-srcset")
+    if srcset:
+        cands = []
+        for part in srcset.split(","):
+            bits = part.strip().split()
+            if bits:
+                w = re.match(r"(\d+)", bits[1]) if len(bits) > 1 else None
+                cands.append((int(w.group(1)) if w else 0, bits[0]))
+        if cands:
+            return max(cands)[1]
+    src = img.attrs.get("src", "")
+    return "" if src.startswith("data:") else src
+
+
+def save_images(body, base, folder, wayback, ts):
+    """Download every image in the article into folder/images and point the
+    <img> nodes at the local files. Images that fail to download are removed."""
+    count, saved = 0, {}
+    for img in [n for n in body.iter() if n.tag in ("img", "source")]:
+        if img.tag == "source":  # <picture><source> alternatives: keep only the <img>
+            img.tag = "#drop"
+            continue
+        if any(is_noise(a) for a in ancestors(img, stop=body)):
+            img.tag = "#drop"  # avatars, share icons, headers: not part of the article
+            continue
+        src = absolute(best_src(img), base)
+        if not src:
+            img.tag = "#drop"
+            continue
+        if src in saved:  # same picture used twice: reuse the saved file
+            img.attrs = {"src": saved[src], "alt": img.attrs.get("alt", ""), "data-local": "1"}
+            continue
+        url = f"{wayback}/web/{ts}im_/{src}" if ts else src
+        try:
+            data, ctype = fetch(url, retries=3)
+        except Exception as e:  # noqa: BLE001
+            print(f"    image failed ({src}): {e}", file=sys.stderr)
+            img.tag = "#drop"
+            continue
+        ctype = (ctype or "").split(";")[0].strip().lower()
+        if not ctype.startswith("image/"):
+            img.tag = "#drop"
+            continue
+        count += 1
+        stem = re.sub(r"[^a-z0-9]+", "-",
+                      Path(urllib.parse.urlparse(src).path).stem.lower()).strip("-")[:50]
+        name = f"{count:02d}-{stem or 'image'}{IMG_TYPES.get(ctype, Path(src).suffix or '.img')}"
+        (folder / "images").mkdir(parents=True, exist_ok=True)
+        (folder / "images" / name).write_bytes(data)
+        saved[src] = f"images/{name}"
+        img.attrs = {"src": saved[src], "alt": img.attrs.get("alt", ""), "data-local": "1"}
+    return count
+
+
+# --------------------------------------------------------------------------- #
+# HTML output (sanitised: only plain content tags, no scripts or styling)
+# --------------------------------------------------------------------------- #
+
+KEEP = {"p", "h2", "h3", "h4", "h5", "h6", "a", "em", "i", "strong", "b", "ul", "ol",
+        "li", "blockquote", "figure", "figcaption", "img", "br", "hr", "pre", "code",
+        "sup", "sub", "cite", "q", "table", "thead", "tbody", "tr", "th", "td"}
+VOID_OUT = {"img", "br", "hr"}
+
+
+def to_html(n, base):
+    out = []
+    for c in n.children:
+        if not isinstance(c, Node):
+            out.append(html.escape(c, quote=False))
+            continue
+        if c.tag in ("#drop", "h1") or is_noise(c):
+            continue
+        if c.tag not in KEEP:  # unwrap div/span/section/etc.
+            out.append(to_html(c, base))
+            continue
+        attrs = ""
+        if c.tag == "a":
+            href = absolute(c.attrs.get("href"), base)
+            if href and not href.startswith("javascript:"):
+                attrs = f' href="{html.escape(href)}"'
+        elif c.tag == "img":
+            if not c.attrs.get("data-local"):
+                continue  # never hotlink: only locally saved images are shown
+            attrs = (f' src="{html.escape(c.attrs["src"])}"'
+                     f' alt="{html.escape(c.attrs.get("alt", ""))}" loading="lazy"')
+        if c.tag in VOID_OUT:
+            out.append(f"<{c.tag}{attrs}>")
+        else:
+            inner = to_html(c, base)
+            if c.tag in ("p", "li", "h2", "h3", "h4", "h5", "h6", "figcaption") and not inner.strip():
+                continue
+            out.append(f"<{c.tag}{attrs}>{inner}</{c.tag}>")
+    return "".join(out)
+
+
+def pretty(markup):
+    """Put block elements on their own lines so the saved pages are readable."""
+    markup = re.sub(r"\s*(</?(?:p|h[2-6]|ul|ol|li|blockquote|figure|figcaption|hr|table|tr|pre)[^>]*>)\s*",
+                    r"\n\1", markup)
+    markup = re.sub(r"\n(</(?:p|h[2-6]|li|figcaption|pre)>)", r"\1", markup)
+    markup = re.sub(r"[ \t]+", " ", markup)
+    return "\n".join(ln.strip() for ln in markup.strip().splitlines() if ln.strip())
+
+
+# --------------------------------------------------------------------------- #
+# Fetching one article
+# --------------------------------------------------------------------------- #
+
+def slug_for(url):
+    path = urllib.parse.urlparse(url).path.rstrip("/")
+    return re.sub(r"[^a-z0-9]+", "-", path.rsplit("/", 1)[-1].lower()).strip("-") or "article"
+
 
 def revive(item, wayback):
     url = item["url"]
@@ -410,11 +558,13 @@ def revive(item, wayback):
         return {"status": "skipped", "note": f"Publisher/repository page, not copied: <{url}>"}
 
     cap = latest_capture(url, wayback)
+    if not cap and wayback == "https://web.archive.org":
+        cap = available_capture(url)
     sources = []
     if cap:
         ts, original = cap
         sources.append((f"{wayback}/web/{ts}id_/{original}",
-                        f"{wayback}/web/{ts}/{original}", ts))
+                        f"https://web.archive.org/web/{ts}/{original}", ts))
     sources.append((url, url, None))  # live page as fallback
 
     global IMG_PREFIX
@@ -428,52 +578,187 @@ def revive(item, wayback):
             continue
         if "html" not in (ctype or "html"):
             continue
-        title, md = to_markdown(decode(body, ctype), url)
-        if len(md) < 200:
+        root = parse(decode(body, ctype))
+        node = main_content(root)
+        if len(to_markdown_node(node, url)) < 200:
             print(f"    too little text extracted from {raw_url}", file=sys.stderr)
             continue
-        captured = f"{ts[:4]}-{ts[4:6]}-{ts[6:8]}" if ts else "live page"
-        return {"status": "ok", "title": title, "markdown": md,
-                "source": cite_url, "captured": captured}
+        return {"status": "ok", "page_title": page_title(root), "node": node, "ts": ts,
+                "source": cite_url,
+                "captured": f"{ts[:4]}-{ts[4:6]}-{ts[6:8]}" if ts else "live page"}
     return {"status": "missing", "note": f"No archived copy found for <{url}>"}
 
 
-def render(results):
+# --------------------------------------------------------------------------- #
+# Writing the site pages
+# --------------------------------------------------------------------------- #
+
+def nice_date(iso):
+    try:
+        y, m, d = iso.split("-")
+        months = ["January", "February", "March", "April", "May", "June", "July",
+                  "August", "September", "October", "November", "December"]
+        return f"{int(d)} {months[int(m) - 1]} {y}"
+    except (ValueError, IndexError):
+        return iso
+
+
+def note_for(item, res):
+    host = urllib.parse.urlparse(item["url"]).netloc
+    when = nice_date(res["captured"])
+    if "bnieuws" in host:
+        lead = ("<strong>Bnieuws</strong>, the magazine of TU Delft's Faculty of Architecture, "
+                "no longer has a working website: bnieuws.nl now redirects to an unrelated site, "
+                "so its archive of articles is effectively gone.")
+    else:
+        lead = "The original page is no longer reliably available."
+    if res["ts"]:
+        how = (f"This copy was recovered from the Internet Archive's "
+               f'<a href="{html.escape(res["source"])}">Wayback Machine</a> '
+               f"(captured {when}) so the article stays readable.")
+    else:
+        lead = ("This article first appeared in <strong>Bnieuws</strong>, the magazine of TU Delft's "
+                "Faculty of Architecture, whose website is no longer working.")
+        how = (f'This copy was saved from the version republished on '
+               f'<a href="{html.escape(item["url"])}">{html.escape(host)}</a>, which is still online.')
+    return f"{lead} {how}"
+
+
+PAGE = """<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>{title} — Oliwia Jackowska</title>
+  <meta name="description" content="{description}">
+  <link rel="stylesheet" href="{root}main.css">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+</head>
+
+<body class="archive">
+  <main class="archive-main">
+    <p class="archive-back"><a href="{back_href}">{back_text}</a></p>
+{body}
+  </main>
+</body>
+
+</html>
+"""
+
+
+def write_article_page(item, res, folder, content_html):
+    meta = " · ".join(x for x in (item["venue"] and f"<em>{html.escape(item['venue'])}</em>",
+                                  html.escape(item["date"])) if x)
+    publication = "Bnieuws"  # every recovered article first ran in Bnieuws
+    body = f"""    <aside class="archive-note">
+      <p>{note_for(item, res)}</p>
+    </aside>
+    <article class="archive-article">
+      <header>
+        <p class="archive-meta">{html.escape(publication)} · {meta}</p>
+        <h1>{html.escape(item["title"])}</h1>
+        <p class="archive-byline">by Oliwia Jackowska</p>
+      </header>
+{content_html}
+    </article>
+    <p class="archive-back"><a href="../">More recovered articles</a> · <a href="../../">Oliwia Jackowska</a></p>"""
+    page = PAGE.format(title=html.escape(item["title"]),
+                       description=html.escape(f"{item['title']} — article by Oliwia Jackowska, "
+                                               f"recovered from the Wayback Machine."),
+                       root="../../", back_href="../../", back_text="← Oliwia Jackowska", body=body)
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "index.html").write_text(page, encoding="utf-8")
+
+
+def write_archive_index(results, outdir):
+    rows = []
+    for item, res in results:
+        if res["status"] != "ok":
+            continue
+        venue = f" in <em>{html.escape(item['venue'])}</em>" if item["venue"] else ""
+        rows.append(f'      <li><a href="{res["slug"]}/">{html.escape(item["title"])}</a>'
+                    f'<span class="archive-meta"> {html.escape(item["date"])}{venue}</span></li>')
+    body = f"""    <h1>Recovered articles</h1>
+    <aside class="archive-note">
+      <p><strong>Bnieuws</strong>, the magazine of TU Delft's Faculty of Architecture, no longer
+        has a working website: bnieuws.nl now redirects to an unrelated site, so its archive of
+        articles is effectively gone. These are copies of my own articles, recovered from the
+        Internet Archive's Wayback Machine so they stay readable.</p>
+    </aside>
+    <ul class="archive-list">
+{chr(10).join(rows)}
+    </ul>"""
+    page = PAGE.format(title="Recovered articles",
+                       description="Articles by Oliwia Jackowska recovered from the Wayback Machine.",
+                       root="../", back_href="../", back_text="← Oliwia Jackowska", body=body)
+    (outdir / "index.html").write_text(page, encoding="utf-8")
+
+
+def render_markdown(results):
     out = ["# Articles", "",
-           "Copies of the articles linked from the site, recovered from the "
-           "[Wayback Machine](https://web.archive.org/) where the originals are offline.",
+           "Copies of my articles whose original pages are offline. Bnieuws "
+           "(the TU Delft architecture faculty magazine) no longer has a working website, "
+           "so these were recovered from the [Wayback Machine](https://web.archive.org/). "
+           "Each one is also on the site under [archive/](archive/).",
            "", "## Contents", ""]
     for item, _ in results:
-        slug = re.sub(r"[^a-z0-9]+", "-", item["title"].lower()).strip("-")
-        out.append(f"- [{item['title']}](#{slug})")
+        out.append(f"- [{item['title']}](#{slug_for(item['url'])})")
     out.append("")
     for item, res in results:
-        slug = re.sub(r"[^a-z0-9]+", "-", item["title"].lower()).strip("-")
-        out += ["---", "", f'<a id="{slug}"></a>', "", f"### {item['title']}", ""]
+        out += ["---", "", f'<a id="{slug_for(item["url"])}"></a>', "", f"### {item['title']}", ""]
         meta = [x for x in (item["date"], f"in *{item['venue']}*" if item["venue"] else "") if x]
         if meta:
             out += [" · ".join(meta), ""]
         if res["status"] == "ok":
             out += [f"Original: <{item['url']}>  ",
-                    f"Archived copy: <{res['source']}> ({res['captured']})", "",
+                    f"Archived copy: <{res['source']}> ({res['captured']})  ",
+                    f"On this site: [archive/{res['slug']}/](archive/{res['slug']}/)", "",
                     res["markdown"], ""]
         else:
             out += [f"_{res['note']}_", ""]
     return "\n".join(out).rstrip() + "\n"
 
 
+def update_index(index_path, results):
+    """Point article links in index.html at the local copies."""
+    text = index_path.read_text(encoding="utf-8")
+    changed = 0
+    for item, res in results:
+        if res["status"] != "ok" or not res["ts"]:
+            continue  # live originals keep their own links
+        url = re.escape(item["url"])
+        pattern = re.compile(r'(<a class="pub" href=")(?:https?://web\.archive\.org/web/[^/"]+/)?' + url + '"')
+        text, n = pattern.subn(rf'\g<1>archive/{res["slug"]}/"', text)
+        changed += n
+    index_path.write_text(text, encoding="utf-8")
+    return changed
+
+
+# --------------------------------------------------------------------------- #
+# Main
+# --------------------------------------------------------------------------- #
+
 def main():
+    global MD_IMG_BASE
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("-i", "--index", default=str(ROOT / "index.html"))
     ap.add_argument("-o", "--output", default=str(ROOT / "articles.md"))
+    ap.add_argument("--archive-dir", default=str(ROOT / "archive"))
     ap.add_argument("--only", help="only process URLs containing this text")
+    ap.add_argument("--no-update-index", action="store_true",
+                    help="don't point the links in index.html at the local copies")
     ap.add_argument("--wayback", default="https://web.archive.org",
                     help="Wayback Machine base URL (for testing)")
     ap.add_argument("--pause", type=float, default=1.5,
                     help="seconds to wait between articles (be polite to archive.org)")
     args = ap.parse_args()
 
-    items = collect_articles(Path(args.index))
+    index_path = Path(args.index)
+    outdir = Path(args.archive_dir)
+    wayback = args.wayback.rstrip("/")
+    items = collect_articles(index_path)
     if args.only:
         items = [i for i in items if args.only in i["url"]]
     if not items:
@@ -482,15 +767,33 @@ def main():
     results = []
     for n, item in enumerate(items, 1):
         print(f"[{n}/{len(items)}] {item['title']}\n    {item['url']}")
-        res = revive(item, args.wayback.rstrip("/"))
-        print(f"    -> {res['status']}" + (f" ({res['captured']})" if res["status"] == "ok" else ""))
+        res = revive(item, wayback)
+        if res["status"] == "ok":
+            res["slug"] = slug_for(item["url"])
+            folder = outdir / res["slug"]
+            if (folder / "images").exists():
+                for old in (folder / "images").iterdir():
+                    old.unlink()
+            imgs = save_images(res["node"], item["url"], folder, wayback, res["ts"])
+            content = pretty(to_html(res["node"], item["url"]))
+            content = "\n".join("      " + ln for ln in content.splitlines())
+            write_article_page(item, res, folder, content)
+            MD_IMG_BASE = f"{outdir.name}/{res['slug']}/"
+            res["markdown"] = to_markdown_node(res["node"], item["url"])
+            print(f"    -> ok ({res['captured']}, {imgs} images) -> {folder.relative_to(ROOT) if folder.is_relative_to(ROOT) else folder}/")
+        else:
+            print(f"    -> {res['status']}")
         results.append((item, res))
         if n < len(items):
             time.sleep(args.pause)
 
-    Path(args.output).write_text(render(results), encoding="utf-8")
-    ok = sum(1 for _, r in results if r["status"] == "ok")
-    print(f"\nWrote {args.output}: {ok}/{len(results)} articles recovered.")
+    ok = [r for _, r in results if r["status"] == "ok"]
+    if ok and not args.only:
+        write_archive_index(results, outdir)
+    Path(args.output).write_text(render_markdown(results), encoding="utf-8")
+    print(f"\nWrote {args.output}: {len(ok)}/{len(results)} articles recovered.")
+    if ok and not args.no_update_index and not args.only:
+        print(f"Updated {update_index(index_path, results)} links in {index_path.name}.")
 
 
 if __name__ == "__main__":
