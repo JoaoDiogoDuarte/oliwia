@@ -283,11 +283,25 @@ def main_content(root):
     return best
 
 
+# Domains that have been taken over since the articles were written: links to
+# them are sent to the Wayback Machine instead (bnieuws.nl now redirects to spam).
+DEAD_DOMAINS = ("bnieuws.nl",)
+
+
 def absolute(url, base):
     if not url:
         return url
     url = urllib.parse.urljoin(base, url)
     return unwrap(url)
+
+
+def safe_link(url, base):
+    """Absolute link for the recovered text, rerouting dead domains to the archive."""
+    url = absolute(url, base)
+    host = urllib.parse.urlparse(url or "").netloc.lower()
+    if any(host == d or host.endswith("." + d) for d in DEAD_DOMAINS):
+        return f"https://web.archive.org/web/2023/{url}"
+    return url
 
 
 def image_url(img, base):
@@ -313,7 +327,7 @@ def inline_md(n, base):
         elif t in ("strong", "b"):
             out.append(f"**{inner.strip()}**" if inner.strip() else "")
         elif t == "a":
-            href = absolute(c.attrs.get("href"), base)
+            href = safe_link(c.attrs.get("href"), base)
             out.append(f"[{inner.strip()}]({href})" if href and inner.strip() else inner)
         elif t == "br":
             out.append("  \n")
@@ -513,7 +527,7 @@ def to_html(n, base):
             continue
         attrs = ""
         if c.tag == "a":
-            href = absolute(c.attrs.get("href"), base)
+            href = safe_link(c.attrs.get("href"), base)
             if href and not href.startswith("javascript:"):
                 attrs = f' href="{html.escape(href)}"'
         elif c.tag == "img":
