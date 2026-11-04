@@ -365,9 +365,9 @@ def inline_md(n, base):
     out = []
     for c in n.children:
         if not isinstance(c, Node):
-            out.append(re.sub(r"\s+", " ", c))
+            out.append(re.sub(r"\s+", " ", c.translate(INVISIBLE)))
             continue
-        if is_noise(c):
+        if is_noise(c) or c.tag == "#drop":
             continue
         t = c.tag
         inner = inline_md(c, base)
@@ -403,9 +403,9 @@ def block_md(n, base, depth=0):
 
     for c in n.children:
         if not isinstance(c, Node):
-            inline_buf.append(re.sub(r"\s+", " ", c))
+            inline_buf.append(re.sub(r"\s+", " ", c.translate(INVISIBLE)))
             continue
-        if is_noise(c):
+        if is_noise(c) or c.tag == "#drop":
             continue
         t = c.tag
         if t == "h1":
@@ -484,6 +484,106 @@ def to_markdown_node(body, base):
 def to_markdown(markup, base):
     root = parse(markup)
     return page_title(root), to_markdown_node(main_content(root), base)
+
+
+# --------------------------------------------------------------------------- #
+# Cleaning site chrome out of the article
+# --------------------------------------------------------------------------- #
+
+INVISIBLE = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), None)
+
+
+def same_page(href, base):
+    """True for links that only jump within the page (#, #top, page#...)."""
+    if not href:
+        return False
+    full = unwrap(urllib.parse.urljoin(base, href))
+    norm = lambda u: re.sub(r"^https?://(www\.)?", "", urllib.parse.urldefrag(u)[0]).rstrip("/")
+    return href.startswith("#") or norm(full) == norm(base)
+
+
+def text_of(n):
+    return squash((n.text() if isinstance(n, Node) else n).translate(INVISIBLE))
+
+
+def prune_outside(node, start=None, end=None):
+    """Drop everything before `start` (and start itself) and from `end` on,
+    in document order, at every depth."""
+    state = {"started": start is None, "ended": False}
+
+    def walk(n):
+        kept = []
+        for c in n.children:
+            if state["ended"]:
+                break
+            if c is end:
+                state["ended"] = True
+                break
+            if not isinstance(c, Node):
+                if state["started"]:
+                    kept.append(c)
+                continue
+            if c is start:
+                state["started"] = True
+                continue
+            if state["started"] or (start is not None and any(x is start for x in c.iter())):
+                walk(c)
+                kept.append(c)
+        n.children = kept
+
+    walk(node)
+
+
+def clean_article(node, base):
+    """Remove the bits of the website that came along with the article: the
+    'From the editors / name' header, banners above it, 'Return to top' and
+    the teaser cards after it, and links that only jump within the page."""
+    start = end = None
+    for n in node.iter():
+        if n.tag in ("h3", "h4", "h5", "h6") and text_of(n).lower() == "from the editors":
+            sib = n.parent.children[n.parent.children.index(n) + 1:]
+            nxt = next((x for x in sib if isinstance(x, Node)), None)
+            start = nxt if nxt is not None and nxt.tag == n.tag and len(text_of(nxt)) < 60 else n
+            break
+    for n in node.iter():
+        if n.tag == "a" and (text_of(n).lower().startswith("return to top")
+                             or (n.attrs.get("href", "").endswith("#top") and not text_of(n))):
+            end = n
+            break
+    if start is not None or end is not None:
+        prune_outside(node, start, end)
+    # unwrap same-page links (keep what's inside them, e.g. lightbox images)
+    for n in list(node.iter()):
+        if n.tag == "a" and same_page(n.attrs.get("href"), base):
+            n.tag, n.attrs = "span", {}
+    attach_captions(node)
+    return node
+
+
+def attach_captions(node):
+    """A standalone image followed by a short paragraph (lightbox images put
+    their caption there) becomes a <figure> with that paragraph as caption."""
+    for img in [n for n in node.iter() if n.tag == "img"]:
+        if any(a.tag in ("figure", "a") for a in ancestors(img, stop=node)):
+            continue
+        box = img
+        while box.parent is not node and box.parent.tag == "span" and \
+                len([c for c in box.parent.children if isinstance(c, Node) or c.strip()]) == 1:
+            box = box.parent
+        siblings = box.parent.children
+        after = siblings[siblings.index(box) + 1:]
+        nxt = next((c for c in after if isinstance(c, Node) or text_of(c)), None)
+        if not (isinstance(nxt, Node) and nxt.tag == "p" and 0 < len(text_of(nxt)) <= 140
+                and nxt.find("img") is None and nxt.find("a") is None):
+            continue
+        fig = Node("figure", parent=box.parent)
+        cap = Node("figcaption", parent=fig)
+        cap.children = nxt.children
+        box.parent = fig
+        fig.children = [box, cap]
+        i = siblings.index(box)
+        siblings[i] = fig
+        siblings.remove(nxt)
 
 
 # --------------------------------------------------------------------------- #
@@ -577,6 +677,64 @@ def save_images(body, base, folder, wayback, ts):
     return count
 
 
+MAX_SIDE = 2000      # px; magazine-page scans stay readable at this size
+WEBP_QUALITY = 80
+
+
+def compress_images(body, folder):
+    """Shrink and convert saved images to WebP (needs Pillow; skipped without it).
+    Records width/height so pages don't jump while images load."""
+    try:
+        from PIL import Image, ImageOps
+    except ImportError:
+        print("    (install Pillow to compress images: pip install Pillow)", file=sys.stderr)
+        return
+    done = {}
+    for img in [n for n in body.iter() if n.tag == "img" and n.attrs.get("data-local")]:
+        src = img.attrs["src"]
+        if src in done:
+            img.attrs.update(done[src])
+            continue
+        path = folder / src
+        try:
+            with Image.open(path) as im:
+                animated = getattr(im, "is_animated", False)
+                if path.suffix.lower() == ".svg" or animated:
+                    done[src] = {}
+                    continue
+                if path.suffix.lower() == ".webp" and max(im.size) <= MAX_SIDE:
+                    done[src] = {"width": str(im.size[0]), "height": str(im.size[1])}
+                    img.attrs.update(done[src])
+                    continue
+                im = ImageOps.exif_transpose(im)
+                if max(im.size) > MAX_SIDE:
+                    im.thumbnail((MAX_SIDE, MAX_SIDE), Image.LANCZOS)
+                if im.mode not in ("RGB", "RGBA", "L", "LA"):
+                    im = im.convert("RGBA" if "A" in im.getbands() else "RGB")
+                out = path.with_suffix(".webp")
+                im.save(out, "WEBP", quality=WEBP_QUALITY, method=6)
+                size = im.size
+        except Exception as e:  # noqa: BLE001  (unreadable/odd files: keep as they are)
+            print(f"    could not compress {path.name}: {e}", file=sys.stderr)
+            done[src] = {}
+            continue
+        if out != path:
+            path.unlink(missing_ok=True)
+        new = {"src": f"images/{out.name}", "width": str(size[0]), "height": str(size[1])}
+        img.attrs.update(new)
+        done[src] = new
+
+
+def remove_unused_images(folder, body):
+    used = {n.attrs["src"] for n in body.iter() if n.tag == "img" and n.attrs.get("data-local")}
+    if (folder / "images").exists():
+        for f in (folder / "images").iterdir():
+            if f"images/{f.name}" not in used:
+                f.unlink()
+        if not any((folder / "images").iterdir()):
+            (folder / "images").rmdir()
+
+
 # --------------------------------------------------------------------------- #
 # HTML output (sanitised: only plain content tags, no scripts or styling)
 # --------------------------------------------------------------------------- #
@@ -591,7 +749,7 @@ def to_html(n, base):
     out = []
     for c in n.children:
         if not isinstance(c, Node):
-            out.append(html.escape(c, quote=False))
+            out.append(html.escape(c.translate(INVISIBLE), quote=False))
             continue
         if c.tag in ("#drop", "h1") or is_noise(c):
             continue
@@ -613,7 +771,14 @@ def to_html(n, base):
             if not c.attrs.get("data-local"):
                 continue  # never hotlink: only locally saved images are shown
             attrs = (f' src="{html.escape(c.attrs["src"])}"'
-                     f' alt="{html.escape(c.attrs.get("alt", ""))}" loading="lazy"')
+                     f' alt="{html.escape(c.attrs.get("alt", ""))}"')
+            if c.attrs.get("width"):
+                attrs += f' width="{c.attrs["width"]}" height="{c.attrs["height"]}"'
+            attrs += ' loading="lazy"'
+            if not any(a.tag == "a" for a in ancestors(c)):
+                # no JavaScript lightbox: clicking opens the full image
+                out.append(f'<a class="archive-zoom" href="{html.escape(c.attrs["src"])}"><img{attrs}></a>')
+                continue
         if c.tag in VOID_OUT:
             out.append(f"<{c.tag}{attrs}>")
         else:
@@ -691,6 +856,35 @@ def revive(item, wayback):
                 "captured": f"{ts[:4]}-{ts[4:6]}-{ts[6:8]}" if ts else "live page"}
     why = "only blocked/placeholder copies found" if rejected else "no archived copy found"
     return {"status": "missing", "note": f"Not recovered ({why}): <{url}>"}
+
+
+def load_saved(item, outdir):
+    """Read back an article page written by an earlier run (for --rebuild)."""
+    url = item["url"]
+    if url.lower().endswith(".pdf"):
+        return {"status": "pdf", "note": f"PDF, not copied: <{url}>"}
+    if any(h in urllib.parse.urlparse(url).netloc for h in SKIP_HOSTS):
+        return {"status": "skipped", "note": f"Publisher/repository page, not copied: <{url}>"}
+    page = outdir / slug_for(url) / "index.html"
+    if not page.exists():
+        return {"status": "missing", "note": f"Not recovered yet: <{url}>"}
+    root = parse(page.read_text(encoding="utf-8"))
+    art = root.find("article")
+    art.children = [c for c in art.children if not (isinstance(c, Node) and c.tag == "header")]
+    for n in art.iter():
+        if n.tag == "a" and "archive-zoom" in n.cls():
+            n.tag, n.attrs = "span", {}  # re-added on output
+        if n.tag == "img" and n.attrs.get("src", "").startswith("images/"):
+            n.attrs["data-local"] = "1"
+        if n.tag == "p" and "archive-caption" in n.cls():
+            n.attrs = {}
+    note = root.find("aside")
+    link = note.find("a") if note else None
+    m = re.search(r"web\.archive\.org/web/(\d{14})/", link.attrs.get("href", "")) if link else None
+    ts = m.group(1) if m else None
+    return {"status": "ok", "node": art, "ts": ts,
+            "source": link.attrs["href"] if m else url,
+            "captured": f"{ts[:4]}-{ts[4:6]}-{ts[6:8]}" if ts else "live page"}
 
 
 # --------------------------------------------------------------------------- #
@@ -876,6 +1070,8 @@ def main():
                     help="Wayback Machine base URL (for testing)")
     ap.add_argument("--pause", type=float, default=1.5,
                     help="seconds to wait between articles (be polite to archive.org)")
+    ap.add_argument("--rebuild", action="store_true",
+                    help="no downloading: re-clean and re-compress the pages already in archive/")
     args = ap.parse_args()
 
     index_path = Path(args.index)
@@ -890,14 +1086,20 @@ def main():
     results = []
     for n, item in enumerate(items, 1):
         print(f"[{n}/{len(items)}] {item['title']}\n    {item['url']}")
-        res = revive(item, wayback)
+        res = load_saved(item, outdir) if args.rebuild else revive(item, wayback)
         if res["status"] == "ok":
             res["slug"] = slug_for(item["url"])
             folder = outdir / res["slug"]
-            if (folder / "images").exists():
-                for old in (folder / "images").iterdir():
-                    old.unlink()
-            imgs = save_images(res["node"], item["url"], folder, wayback, res["ts"])
+            clean_article(res["node"], item["url"])
+            if not args.rebuild:
+                if (folder / "images").exists():
+                    for old in (folder / "images").iterdir():
+                        old.unlink()
+                save_images(res["node"], item["url"], folder, wayback, res["ts"])
+            compress_images(res["node"], folder)
+            remove_unused_images(folder, res["node"])
+            imgs = len({x.attrs["src"] for x in res["node"].iter()
+                        if x.tag == "img" and x.attrs.get("data-local")})
             content = pretty(to_html(res["node"], item["url"]))
             content = "\n".join("      " + ln for ln in content.splitlines())
             write_article_page(item, res, folder, content)
@@ -907,11 +1109,11 @@ def main():
         else:
             print(f"    -> {res['status']}")
             stale = outdir / slug_for(item["url"])
-            if res["status"] == "missing" and (stale / "index.html").exists():
+            if res["status"] == "missing" and not args.rebuild and (stale / "index.html").exists():
                 shutil.rmtree(stale)  # remove a bad copy from an earlier run
                 print(f"    removed old copy {stale.name}/")
         results.append((item, res))
-        if n < len(items):
+        if n < len(items) and not args.rebuild:
             time.sleep(args.pause)
 
     ok = [r for _, r in results if r["status"] == "ok"]

@@ -755,3 +755,8 @@ a.pub:hover {
     color: var(--muted);
     font-style: italic;
 }
+
+.archive-zoom {
+    display: block;
+    cursor: zoom-in;
+}
