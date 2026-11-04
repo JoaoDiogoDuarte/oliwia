@@ -677,6 +677,10 @@ def save_images(body, base, folder, wayback, ts):
     return count
 
 
+# Version tag on the stylesheet link so browsers fetch a fresh copy whenever
+# main.css changes (set from the file's hash in main()).
+CSS_VERSION = "1"
+
 MAX_SIDE = 2000      # px; magazine-page scans stay readable at this size
 WEBP_QUALITY = 80
 
@@ -723,6 +727,66 @@ def compress_images(body, folder):
         new = {"src": f"images/{out.name}", "width": str(size[0]), "height": str(size[1])}
         img.attrs.update(new)
         done[src] = new
+
+
+def viewer_name(src):
+    """images/03-photo.webp -> images/03-photo.html (the page that shows it large)."""
+    return str(Path(src).with_suffix(".html"))
+
+
+VIEWER = """<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Image {n} of {total} — {title}</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../../../main.css?v={css}">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
+</head>
+
+<body class="archive viewer">
+  <nav class="viewer-bar">
+    <a href="../#{anchor}">← Back to “{title}”</a>
+    <span class="viewer-steps">{prev}<span class="viewer-count">{n} / {total}</span>{next}</span>
+  </nav>
+  <main class="viewer-main">
+    <figure>
+      <a href="{file}" title="Open the image file"><img src="{file}" alt="{alt}"{size}></a>
+{caption}    </figure>
+  </main>
+</body>
+
+</html>
+"""
+
+
+def write_viewer_pages(item, body, folder):
+    """One small page per image: the picture at full width, its caption,
+    previous/next, and a link back to the same spot in the article."""
+    imgs, seen = [], set()
+    for n in body.iter():
+        if n.tag == "img" and n.attrs.get("data-local") and n.attrs["src"] not in seen:
+            seen.add(n.attrs["src"])
+            imgs.append(n)
+    for i, img in enumerate(imgs):
+        src = img.attrs["src"]
+        fig = next((a for a in ancestors(img) if a.tag == "figure"), None)
+        cap = fig.find("figcaption") if fig else None
+        caption = text_of(cap) if cap else ""
+        size = (f' width="{img.attrs["width"]}" height="{img.attrs["height"]}"'
+                if img.attrs.get("width") else "")
+        link = lambda j, label: (f'<a href="{Path(viewer_name(imgs[j].attrs["src"])).name}">{label}</a>'
+                                 if 0 <= j < len(imgs) else f'<span aria-hidden="true">{label}</span>')
+        page = VIEWER.format(
+            n=i + 1, total=len(imgs), title=html.escape(item["title"]), css=CSS_VERSION,
+            anchor=Path(src).stem, file=html.escape(Path(src).name),
+            alt=html.escape(img.attrs.get("alt") or caption), size=size,
+            prev=link(i - 1, "← Previous"), next=link(i + 1, "Next →"),
+            caption=f'      <figcaption>{html.escape(caption)}</figcaption>\n' if caption else "")
+        (folder / viewer_name(src)).write_text(page, encoding="utf-8")
 
 
 def remove_unused_images(folder, body):
@@ -777,7 +841,9 @@ def to_html(n, base):
             attrs += ' loading="lazy"'
             if not any(a.tag == "a" for a in ancestors(c)):
                 # no JavaScript lightbox: clicking opens the full image
-                out.append(f'<a class="archive-zoom" href="{html.escape(c.attrs["src"])}"><img{attrs}></a>')
+                view = viewer_name(c.attrs["src"])
+                out.append(f'<a class="archive-zoom" id="{Path(view).stem}" href="{html.escape(view)}">'
+                           f'<img{attrs}></a>')
                 continue
         if c.tag in VOID_OUT:
             out.append(f"<{c.tag}{attrs}>")
@@ -931,7 +997,7 @@ PAGE = """<!DOCTYPE html>
   <meta name="color-scheme" content="light dark">
   <title>{title} — Oliwia Jackowska</title>
   <meta name="description" content="{description}">
-  <link rel="stylesheet" href="{root}main.css">
+  <link rel="stylesheet" href="{root}main.css?v={css}">
   <link rel="icon" type="image/svg+xml" href="/assets/icons/favicon.svg">
 </head>
 
@@ -965,7 +1031,8 @@ def write_article_page(item, res, folder, content_html):
     page = PAGE.format(title=html.escape(item["title"]),
                        description=html.escape(f"{item['title']} — article by Oliwia Jackowska, "
                                                f"recovered from the Wayback Machine."),
-                       root="../../", back_href="../../", back_text="← Oliwia Jackowska", body=body)
+                       root="../../", back_href="../../", back_text="← Oliwia Jackowska", body=body,
+                       css=CSS_VERSION)
     folder.mkdir(parents=True, exist_ok=True)
     (folder / "index.html").write_text(page, encoding="utf-8")
 
@@ -990,7 +1057,8 @@ def write_archive_index(results, outdir):
     </ul>"""
     page = PAGE.format(title="Recovered articles",
                        description="Articles by Oliwia Jackowska recovered from the Wayback Machine.",
-                       root="../", back_href="../", back_text="← Oliwia Jackowska", body=body)
+                       root="../", back_href="../", back_text="← Oliwia Jackowska", body=body,
+                       css=CSS_VERSION)
     (outdir / "index.html").write_text(page, encoding="utf-8")
 
 
@@ -1057,8 +1125,24 @@ def update_index(index_path, results):
 # Main
 # --------------------------------------------------------------------------- #
 
+def css_version(css_path):
+    import hashlib
+    try:
+        return hashlib.sha1(css_path.read_bytes()).hexdigest()[:8]
+    except OSError:
+        return "1"
+
+
+def set_index_css_version(index_path, version):
+    """Same cache-busting tag on the home page's stylesheet link."""
+    text = index_path.read_text(encoding="utf-8")
+    new = re.sub(r'href="main\.css(?:\?v=[^"]*)?"', f'href="main.css?v={version}"', text)
+    if new != text:
+        index_path.write_text(new, encoding="utf-8")
+
+
 def main():
-    global MD_IMG_BASE
+    global MD_IMG_BASE, CSS_VERSION
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("-i", "--index", default=str(ROOT / "index.html"))
     ap.add_argument("-o", "--output", default=str(ROOT / "articles.md"))
@@ -1076,6 +1160,7 @@ def main():
 
     index_path = Path(args.index)
     outdir = Path(args.archive_dir)
+    CSS_VERSION = css_version(index_path.parent / "main.css")
     wayback = args.wayback.rstrip("/")
     items = collect_articles(index_path)
     if args.only:
@@ -1098,6 +1183,7 @@ def main():
                 save_images(res["node"], item["url"], folder, wayback, res["ts"])
             compress_images(res["node"], folder)
             remove_unused_images(folder, res["node"])
+            write_viewer_pages(item, res["node"], folder)
             imgs = len({x.attrs["src"] for x in res["node"].iter()
                         if x.tag == "img" and x.attrs.get("data-local")})
             content = pretty(to_html(res["node"], item["url"]))
@@ -1127,6 +1213,7 @@ def main():
     print(f"\nWrote {args.output}: {len(ok)}/{len(results)} articles recovered.")
     if ok and not args.no_update_index and not args.only:
         print(f"Updated {update_index(index_path, results)} links in {index_path.name}.")
+        set_index_css_version(index_path, CSS_VERSION)
 
 
 if __name__ == "__main__":

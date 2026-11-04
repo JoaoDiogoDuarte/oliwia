@@ -760,3 +760,56 @@ a.pub:hover {
     display: block;
     cursor: zoom-in;
 }
+
+/* ---------- image viewer pages (archive/<article>/images/*.html) ---------- */
+
+.viewer-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem 1.5rem;
+    padding: 0.75rem var(--gutter);
+    background: var(--bg);
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) 15%, transparent);
+    font-family: var(--mono);
+    font-size: var(--fs-small);
+}
+
+.viewer-steps {
+    display: flex;
+    gap: 1.25rem;
+    white-space: nowrap;
+}
+
+.viewer-steps span[aria-hidden] {
+    opacity: 0.35;
+}
+
+.viewer-count {
+    color: var(--muted);
+}
+
+.viewer-main {
+    padding: 1rem var(--gutter) 2rem;
+}
+
+.viewer-main figure {
+    max-width: max-content;
+    margin-inline: auto;
+}
+
+.viewer-main img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.viewer-main figcaption {
+    margin-top: 0.6rem;
+    font-size: var(--fs-small);
+    color: var(--muted);
+}
