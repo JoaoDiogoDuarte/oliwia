@@ -328,6 +328,13 @@ main {
     color: var(--rail);
 }
 
+#education,
+#work {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.25em;
+}
+
 .row {
     grid-column: 2 / -1;
     display: grid;
